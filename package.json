@@ -13,6 +13,9 @@
     "express": "latest",
     "axios": "latest",
     "pino": "lastest",
-    "socket.io": "lastest"
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
