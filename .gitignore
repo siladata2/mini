@@ -1,0 +1,21 @@
+# ───────── SYSTEM ─────────
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+
+# ───────── WHATSAPP SESSIONS ─────────
+session/
+session/**
+subbots/
+subbots/**
+
+# ───────── ENV ─────────
+.env
+
+# ───────── LOGS ─────────
+*.log
+
+# ───────── RENDER / SYSTEM ─────────
+.DS_Store
+.vscode/

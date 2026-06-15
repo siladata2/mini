@@ -3,6 +3,7 @@
 // ╔══════════════════════════════════════════════════════════════╗
 // ║              ZENITSU BOT — main.js (CommonJS)               ║
 // ║     Session Permanente · Pair Code · Baileys · Render       ║
+// ║        Version Pro avec Interface Web Avancée               ║
 // ╚══════════════════════════════════════════════════════════════╝
 
 const {
@@ -21,6 +22,9 @@ const { Boom } = require('@hapi/boom');
 const pino     = require('pino');
 const fs       = require('fs');
 const path     = require('path');
+const express  = require('express');
+const http     = require('http');
+const socketIO = require('socket.io');
 
 // ──────────────────────────────────────────────
 //  CONFIG
@@ -37,7 +41,7 @@ const CONFIG = {
   maxRetries  : 5,
   keepAliveMs : 5 * 60 * 1000,
   botName     : process.env.BOT_NAME || '𝙯𝙚𝙣𝙞𝙩𝙨𝙪 ᗰᎥᑎᎥ',
-  maxSubBots  : 10,
+  maxSubBots  : 50,
 
   groupsToJoin: [
     'https://chat.whatsapp.com/D9ZE6hOH6pm47GBjoeXpov',
@@ -56,6 +60,20 @@ const stats = {
   eventsHandled : 0,
   reconnections : 0,
 };
+
+// Anti-spam pour les messages de connexion
+const connectionMessageThrottle = new Map();
+const THROTTLE_TIME = 5000; // 5 secondes minimum entre messages de connexion
+
+function shouldSendConnectionMessage(jid) {
+  const now = Date.now();
+  const lastTime = connectionMessageThrottle.get(jid) || 0;
+  if (now - lastTime >= THROTTLE_TIME) {
+    connectionMessageThrottle.set(jid, now);
+    return true;
+  }
+  return false;
+}
 
 const logger = pino({ level: 'silent' });
 
@@ -209,6 +227,8 @@ async function joinBotGroups(sock) {
 // ──────────────────────────────────────────────
 async function sendOwnerNotification(sock) {
   setTimeout(async () => {
+    if (!shouldSendConnectionMessage(CONFIG.OWNER_JID)) return;
+    
     await safeSendMessage(sock, CONFIG.OWNER_JID, {
       image: { url: 'https://files.catbox.moe/uklx8n.jpg' },
       caption:
@@ -233,9 +253,12 @@ async function sendOwnerNotification(sock) {
 }
 
 // ══════════════════════════════════════════════
-//  GESTION DES SOUS-BOTS
+//  GESTION DES SOUS-BOTS (AMÉLIORÉE)
 // ══════════════════════════════════════════════
 const subBots = new Map();
+
+// Stockage des connexions Socket.IO pour les notifications web
+const socketConnections = new Set();
 
 async function connectSubBot(requesterJid, number, mainSock) {
   const cleanNumber = number.replace(/[^0-9]/g, '');
@@ -264,6 +287,10 @@ async function connectSubBot(requesterJid, number, mainSock) {
   let subRetryCount   = 0;
   let subPairRequested = false;
   let subKeepAlive    = null;
+  let connectionMessageSent = false; // Anti-spam local
+
+  // Notifier l'interface web
+  notifyWebInterface('subbot_connecting', { number: cleanNumber });
 
   async function _connectSub() {
     const { state, saveCreds } = await useMultiFileAuthState(subSessionDir);
@@ -283,7 +310,13 @@ async function connectSubBot(requesterJid, number, mainSock) {
       generateHighQualityLinkPreview: false,
     });
 
-    subBots.set(cleanNumber, { sock: subSock, retryCount: subRetryCount, keepAliveTimer: subKeepAlive });
+    subBots.set(cleanNumber, { 
+      sock: subSock, 
+      retryCount: subRetryCount, 
+      keepAliveTimer: subKeepAlive,
+      connected: false,
+      createdAt: Date.now()
+    });
 
     subSock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect } = update;
@@ -294,6 +327,9 @@ async function connectSubBot(requesterJid, number, mainSock) {
         try {
           const code      = await subSock.requestPairingCode(cleanNumber);
           const formatted = code.match(/.{1,4}/g).join('-');
+          
+          notifyWebInterface('subbot_qr', { number: cleanNumber, code: formatted });
+          
           await safeSendMessage(mainSock, requesterJid, {
             text:
               `🔑 *CODE DE JUMELAGE pour ${cleanNumber}*\n\n` +
@@ -319,33 +355,47 @@ async function connectSubBot(requesterJid, number, mainSock) {
         } catch (e) {
           err(`Sub-bot pair code (${cleanNumber}) : ${e.message}`);
           subPairRequested = false;
+          notifyWebInterface('subbot_error', { number: cleanNumber, error: e.message });
         }
       }
 
       if (connection === 'open') {
         subRetryCount    = 0;
         subPairRequested = false;
+        connectionMessageSent = true;
+        
         info(`✅ Sous-bot connected: ${cleanNumber}`);
+        notifyWebInterface('subbot_connected', { number: cleanNumber });
 
         if (subKeepAlive) clearInterval(subKeepAlive);
         subKeepAlive = setInterval(async () => {
           try { await subSock.sendPresenceUpdate('available'); } catch (_) {}
         }, CONFIG.keepAliveMs);
-        subBots.set(cleanNumber, { sock: subSock, retryCount: subRetryCount, keepAliveTimer: subKeepAlive });
-
-        await safeSendMessage(mainSock, requesterJid, {
-          text:`*Connected Succesfully*`,
-          contextInfo: {
-            mentionedJid: [CONFIG.OWNER_JID],
-            forwardingScore: 352,
-            isForwarded: true,
-            forwardedNewsletterMessageInfo: {
-              newsletterJid: '120363425394543602@newsletter',
-              newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-              serverMessageId: 202,
-            },
-          },
+        
+        subBots.set(cleanNumber, { 
+          sock: subSock, 
+          retryCount: subRetryCount, 
+          keepAliveTimer: subKeepAlive,
+          connected: true,
+          createdAt: Date.now()
         });
+
+        // Anti-spam : n'envoyer "Connected Successfully" qu'une seule fois
+        if (shouldSendConnectionMessage(requesterJid)) {
+          await safeSendMessage(mainSock, requesterJid, {
+            text:`*Connected Succesfully*`,
+            contextInfo: {
+              mentionedJid: [CONFIG.OWNER_JID],
+              forwardingScore: 352,
+              isForwarded: true,
+              forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363425394543602@newsletter',
+                newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                serverMessageId: 202,
+              },
+            },
+          });
+        }
 
         await joinBotGroups(subSock);
 
@@ -372,10 +422,19 @@ async function connectSubBot(requesterJid, number, mainSock) {
         const code   = lastDisconnect?.error ? new Boom(lastDisconnect.error)?.output?.statusCode : 0;
         const wasReg = subSock.authState.creds.registered;
 
+        notifyWebInterface('subbot_disconnected', { 
+          number: cleanNumber, 
+          code, 
+          wasRegistered: wasReg 
+        });
+
         if (code === DisconnectReason.loggedOut && wasReg) {
           warn(`Sous-bot ${cleanNumber} : session expirée.`);
           fs.rmSync(subSessionDir, { recursive: true, force: true });
           subBots.delete(cleanNumber);
+          connectionMessageSent = false;
+          notifyWebInterface('subbot_removed', { number: cleanNumber, reason: 'session_expired' });
+          
           await safeSendMessage(mainSock, requesterJid, {
             text: `⚠️ Sous-bot *${cleanNumber}* déconnecté (session expirée). Relancez "pair ${cleanNumber}".`,
           });
@@ -387,10 +446,20 @@ async function connectSubBot(requesterJid, number, mainSock) {
           subPairRequested = false;
           const delay = Math.min(1000 * 2 ** subRetryCount, 30000);
           warn(`Sous-bot ${cleanNumber} : reconnexion ${subRetryCount}/${CONFIG.maxRetries} dans ${delay / 1000}s...`);
+          
+          notifyWebInterface('subbot_reconnecting', { 
+            number: cleanNumber, 
+            attempt: subRetryCount, 
+            maxRetries: CONFIG.maxRetries 
+          });
+          
           setTimeout(_connectSub, delay);
         } else {
           err(`Sous-bot ${cleanNumber} : échec après ${CONFIG.maxRetries} tentatives.`);
           subBots.delete(cleanNumber);
+          connectionMessageSent = false;
+          notifyWebInterface('subbot_failed', { number: cleanNumber });
+          
           await safeSendMessage(mainSock, requesterJid, {
             text: `❌ Sous-bot *${cleanNumber}* définitivement déconnecté.`,
           });
@@ -404,6 +473,35 @@ async function connectSubBot(requesterJid, number, mainSock) {
   await _connectSub();
 }
 
+async function restartSubBot(number, requesterJid, mainSock) {
+  const cleanNumber = number.replace(/[^0-9]/g, '');
+  
+  if (!subBots.has(cleanNumber)) {
+    await safeSendMessage(mainSock, requesterJid, {
+      text: `⚠️ Aucun sous-bot avec le numéro *${cleanNumber}*. Utilisez "pair ${cleanNumber}" d'abord.`,
+    });
+    return false;
+  }
+
+  info(`🔄 Redémarrage du sous-bot: ${cleanNumber}`);
+  notifyWebInterface('subbot_restarting', { number: cleanNumber });
+  
+  // Déconnecter d'abord
+  await disconnectSubBot(cleanNumber);
+  
+  // Attendre un peu
+  await new Promise(r => setTimeout(r, 3000));
+  
+  // Reconnexion
+  await connectSubBot(requesterJid, cleanNumber, mainSock);
+  
+  await safeSendMessage(mainSock, requesterJid, {
+    text: `🔄 Sous-bot *${cleanNumber}* redémarré avec succès.`,
+  });
+  
+  return true;
+}
+
 async function disconnectSubBot(number) {
   const cleanNumber = number.replace(/[^0-9]/g, '');
   const bot = subBots.get(cleanNumber);
@@ -413,7 +511,19 @@ async function disconnectSubBot(number) {
   const subSessionDir = path.join(CONFIG.subBotsDir, cleanNumber);
   fs.rmSync(subSessionDir, { recursive: true, force: true });
   subBots.delete(cleanNumber);
+  notifyWebInterface('subbot_removed', { number: cleanNumber, reason: 'manual' });
   return true;
+}
+
+// Fonction pour notifier l'interface web
+function notifyWebInterface(event, data) {
+  for (const socket of socketConnections) {
+    try {
+      socket.emit(event, data);
+    } catch (e) {
+      // Ignorer les erreurs de socket
+    }
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -462,6 +572,19 @@ async function handleUniversal(sock, msg, text, jid) {
     return true;
   }
 
+  // Nouvelle commande restart
+  if (args[0]?.toLowerCase() === 'restart') {
+    const targetNumber = args[1];
+    if (!targetNumber || !/^\+?[0-9]{7,15}$/.test(targetNumber)) {
+      await safeSendMessage(sock, jid, {
+        text: `❌ Usage : *restart <numéro>*\nRedémarre un sous-bot connecté`,
+      }, { quoted: msg });
+      return true;
+    }
+    await restartSubBot(targetNumber, jid, sock);
+    return true;
+  }
+
   if (args[0]?.toLowerCase() === 'unpair') {
     const targetNumber = args[1];
     if (!targetNumber) {
@@ -481,7 +604,10 @@ async function handleUniversal(sock, msg, text, jid) {
     if (subBots.size === 0) {
       await safeSendMessage(sock, jid, { text: `🤖 Aucun sous-bot actif.` }, { quoted: msg });
     } else {
-      const list = [...subBots.keys()].map((n, i) => `${i + 1}. +${n}`).join('\n');
+      const list = [...subBots.entries()].map(([n, bot], i) => {
+        const status = bot.connected ? '🟢' : '🟡';
+        return `${i + 1}. ${status} +${n} (depuis ${formatUptime(Date.now() - bot.createdAt)})`;
+      }).join('\n');
       await safeSendMessage(sock, jid, {
         text: `🤖 *Sous-bots actifs (${subBots.size}/${CONFIG.maxSubBots})*\n\n${list}`,
       }, { quoted: msg });
@@ -509,6 +635,8 @@ async function requestPairCode(sock) {
     console.log('  \x1b[42m\x1b[30m  VOTRE CODE DE JUMELAGE  \x1b[0m');
     console.log(`  \x1b[1m\x1b[33m  ${formatted}  \x1b[0m`);
     console.log('  Entrez ce code dans WhatsApp → Appareils liés → Lier avec un numéro\n');
+    
+    notifyWebInterface('main_qr', { code: formatted });
   } catch (e) {
     err(`Impossible d'obtenir le pair code : ${e.message}`);
     pairCodeRequested = false;
@@ -657,6 +785,7 @@ async function connect() {
       await sendOwnerNotification(sock);
       setTimeout(() => joinBotGroups(sock), 10000);
       await dispatchEvent('connection.open', sock);
+      notifyWebInterface('main_connected', { jid: sock.user?.id });
     }
 
     if (connection === 'close') {
@@ -666,6 +795,7 @@ async function connect() {
       const wasReg = sock.authState.creds.registered;
 
       warn(`Connexion fermée — code: ${code}`);
+      notifyWebInterface('main_disconnected', { code, wasRegistered: wasReg });
 
       if (code === DisconnectReason.loggedOut && wasReg) {
         err('Session expirée. Suppression et redémarrage...');
@@ -720,86 +850,129 @@ async function restoreSubBots(mainSock) {
 process.on('uncaughtException',  (e) => err(`uncaughtException : ${e.message}\n${e.stack}`));
 process.on('unhandledRejection', (e) => err(`unhandledRejection : ${e}`));
 
-(async () => {
-  console.log('\n  \x1b[45m\x1b[37m  ⚡ ZENITSU BOT — DÉMARRAGE  \x1b[0m\n');
-  loadCommands();
-  loadEvents();
-  const mainSock = await connect();
-  setTimeout(() => restoreSubBots(mainSock), 15000);
-})();
-
-const express = require('express');
+// ══════════════════════════════════════════════
+//  SERVEUR WEB & SOCKET.IO (AMÉLIORÉ)
+// ══════════════════════════════════════════════
 const app = express();
+const server = http.createServer(app);
+const io = socketIO(server, {
+  maxHttpBufferSize: 1e8,
+  pingTimeout: 60000
+});
+
 const PORT = process.env.PORT || 3000;
 
+// Servir les fichiers statiques du dossier public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Page principale - Interface Pro
 app.get('/', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>ZENITSU BOT</title>
-            <meta http-equiv="refresh" content="300">
-            <style>
-                body {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    font-family: Arial;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                }
-                .container {
-                    text-align: center;
-                    background: rgba(0,0,0,0.5);
-                    padding: 40px;
-                    border-radius: 20px;
-                }
-                .status {
-                    color: #4ade80;
-                    font-size: 20px;
-                    margin-top: 20px;
-                }
-                .stats {
-                    margin-top: 20px;
-                    font-size: 14px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🤖 ZENITSU BOT</h1>
-                <div class="status">🟢 BOT ONLINE</div>
-                <div class="stats">
-                    📊 Uptime: ${process.uptime().toFixed(0)}s<br>
-                    🤖 Sous-bots: ${subBots?.size || 0}/10<br>
-                    ⏰ ${new Date().toLocaleString()}
-                </div>
-            </div>
-        </body>
-        </html>
-    `);
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// API REST pour les stats
+app.get('/api/stats', (req, res) => {
+  const up = formatUptime(Date.now() - stats.startTime);
+  const subBotsList = [...subBots.entries()].map(([number, bot]) => ({
+    number,
+    connected: bot.connected || false,
+    uptime: formatUptime(Date.now() - (bot.createdAt || Date.now())),
+    createdAt: bot.createdAt
+  }));
+
+  res.json({
+    status: 'active',
+    uptime: up,
+    uptimeSeconds: process.uptime(),
+    botName: CONFIG.botName,
+    stats: {
+      messagesTotal: stats.messagesTotal,
+      commandsUsed: stats.commandsUsed,
+      eventsHandled: stats.eventsHandled,
+      reconnections: stats.reconnections
+    },
+    subBots: {
+      active: subBots.size,
+      max: CONFIG.maxSubBots,
+      list: subBotsList
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.get('/ping', (req, res) => {
-    res.json({
-        status: 'active',
-        uptime: process.uptime(),
-        subBots: subBots?.size || 0,
-        timestamp: new Date().toISOString()
-    });
+  res.json({
+    status: 'active',
+    uptime: process.uptime(),
+    subBots: subBots?.size || 0,
+    timestamp: new Date().toISOString()
+  });
 });
 
-app.listen(PORT, () => {
-    info(`🌐 Serveur HTTP démarré sur le port ${PORT}`);
-    info(`📊 Page de monitoring: https://votre-render-url.onrender.com`);
+// Socket.IO pour la communication en temps réel
+io.on('connection', (socket) => {
+  info(`🔌 Client web connecté: ${socket.id}`);
+  socketConnections.add(socket);
+
+  // Envoyer les stats actuelles
+  socket.emit('stats_update', {
+    uptime: formatUptime(Date.now() - stats.startTime),
+    messagesTotal: stats.messagesTotal,
+    commandsUsed: stats.commandsUsed,
+    subBotsCount: subBots.size,
+    maxSubBots: CONFIG.maxSubBots
+  });
+
+  // Commande pour redémarrer un sous-bot depuis l'interface web
+  socket.on('restart_subbot', async (data) => {
+    const { number } = data;
+    if (number && subBots.has(number)) {
+      socket.emit('notification', { type: 'info', message: `Redémarrage du sous-bot ${number}...` });
+      await restartSubBot(number, CONFIG.OWNER_JID, mainSock);
+      socket.emit('notification', { type: 'success', message: `Sous-bot ${number} redémarré` });
+    }
+  });
+
+  // Commande pour déconnecter un sous-bot
+  socket.on('disconnect_subbot', async (data) => {
+    const { number } = data;
+    if (number) {
+      const done = await disconnectSubBot(number);
+      socket.emit('notification', { 
+        type: done ? 'success' : 'error', 
+        message: done ? `Sous-bot ${number} déconnecté` : `Échec déconnexion ${number}` 
+      });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    info(`🔌 Client web déconnecté: ${socket.id}`);
+    socketConnections.delete(socket);
+  });
 });
 
 // Ping automatique toutes les 10 minutes pour garder le bot actif
 setInterval(() => {
-    fetch(`http://localhost:${PORT}/ping`).catch(() => {});
+  fetch(`http://localhost:${PORT}/ping`).catch(() => {});
 }, 10 * 60 * 1000);
+
+// Variable globale pour le socket principal (pour l'interface web)
+let mainSock = null;
+
+(async () => {
+  console.log('\n  \x1b[45m\x1b[37m  ⚡ ZENITSU BOT PRO — DÉMARRAGE  \x1b[0m\n');
+  loadCommands();
+  loadEvents();
+  mainSock = await connect();
+  
+  server.listen(PORT, () => {
+    info(`🌐 Interface Web Pro démarrée sur le port ${PORT}`);
+    info(`📊 Dashboard: http://localhost:${PORT}`);
+  });
+  
+  setTimeout(() => restoreSubBots(mainSock), 15000);
+})();
+
 module.exports = {
   commands,
   eventHandlers,
@@ -809,4 +982,5 @@ module.exports = {
   safeSendMessage,
   connectSubBot,
   disconnectSubBot,
-}
+  restartSubBot,
+};

@@ -11,6 +11,8 @@
   "dependencies": {
     "@whiskeysockets/baileys": "latest",
     "express": "latest",
-    "axios": "latest"
+    "axios": "latest",
+    "pino": "lastest",
+    "socket.io": "lastest"
   }
 }

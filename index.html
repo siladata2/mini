@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZENITSU BOT PRO - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+        }
+        
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header .subtitle { opacity: 0.9; font-size: 1.1em; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            color: #a0aec0;
+            margin-top: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .panel h2 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+        
+        .subbot-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .subbot-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .subbot-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #667eea;
+        }
+        
+        .subbot-info h3 {
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .status-connected {
+            background: rgba(72, 187, 120, 0.2);
+            color: #48bb78;
+            border: 1px solid #48bb78;
+        }
+        
+        .status-disconnected {
+            background: rgba(245, 101, 101, 0.2);
+            color: #f56565;
+            border: 1px solid #f56565;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .btn-restart {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+        
+        .btn-disconnect {
+            background: linear-gradient(135deg, #fc8181, #f56565);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logs {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            border-left: 3px solid #667eea;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .log-entry.error { border-left-color: #f56565; color: #fc8181; }
+        .log-entry.success { border-left-color: #48bb78; color: #68d391; }
+        .log-entry.warning { border-left-color: #ed8936; color: #f6ad55; }
+        
+        .log-time {
+            color: #a0aec0;
+            font-size: 0.85em;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .action-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ ZENITSU BOT PRO</h1>
+            <p class="subtitle">Dashboard Professionnel • Gestion de Bots WhatsApp</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="uptime">0j 0h 0m</div>
+                <div class="stat-label">⏱ Uptime</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="messages">0</div>
+                <div class="stat-label">💬 Messages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="commands">0</div>
+                <div class="stat-label">⚡ Commandes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="subbots">0/50</div>
+                <div class="stat-label">🤖 Sous-bots</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h2>🤖 Sous-bots Connectés</h2>
+                <div class="subbot-list" id="subbotList">
+                    <div style="text-align: center; padding: 40px; color: #a0aec0;">
+                        Aucun sous-bot connecté
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📋 Logs en Direct</h2>
+                <div class="logs" id="logs">
+                    <div class="log-entry">
+                        <span class="log-time">[Système]</span> Dashboard initialisé...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        function addLog(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            logEntry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+            logsDiv.insertBefore(logEntry, logsDiv.firstChild);
+            
+            // Garder seulement les 100 derniers logs
+            while (logsDiv.children.length > 100) {
+                logsDiv.removeChild(logsDiv.lastChild);
+            }
+        }
+        
+        function updateStats(data) {
+            document.getElementById('uptime').textContent = data.uptime || '0j 0h 0m';
+            document.getElementById('messages').textContent = data.messagesTotal || 0;
+            document.getElementById('commands').textContent = data.commandsUsed || 0;
+            document.getElementById('subbots').textContent = `${data.subBotsCount || 0}/50`;
+        }
+        
+        function updateSubbotList(subbot) {
+            const listDiv = document.getElementById('subbotList');
+            const emptyMsg = listDiv.querySelector('div[style]');
+            if (emptyMsg) emptyMsg.remove();
+            
+            let card = document.getElementById(`subbot-${subbot.number}`);
+            if (!card) {
+                card = document.createElement('div');
+                card.className = 'subbot-card';
+                card.id = `subbot-${subbot.number}`;
+                card.innerHTML = `
+                    <div class="subbot-info">
+                        <h3>📱 +${subbot.number}</h3>
+                        <span class="status-badge" id="status-${subbot.number}">Connexion...</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-restart" onclick="restartSubbot('${subbot.number}')">🔄 Restart</button>
+                        <button class="btn btn-disconnect" onclick="disconnectSubbot('${subbot.number}')">✕</button>
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            }
+            
+            const statusBadge = document.getElementById(`status-${subbot.number}`);
+            if (subbot.connected) {
+                statusBadge.className = 'status-badge status-connected';
+                statusBadge.textContent = '🟢 Connecté';
+            } else {
+                statusBadge.className = 'status-badge status-disconnected';
+                statusBadge.textContent = '🔴 Déconnecté';
+            }
+        }
+        
+        function restartSubbot(number) {
+            socket.emit('restart_subbot', { number });
+            addLog(`🔄 Redémarrage du sous-bot ${number}...`, 'warning');
+        }
+        
+        function disconnectSubbot(number) {
+            if (confirm(`Voulez-vous vraiment déconnecter le sous-bot ${number} ?`)) {
+                socket.emit('disconnect_subbot', { number });
+                addLog(`🗑️ Déconnexion du sous-bot ${number}...`, 'warning');
+                const card = document.getElementById(`subbot-${number}`);
+                if (card) card.remove();
+            }
+        }
+        
+        // Écouteurs Socket.IO
+        socket.on('stats_update', (data) => {
+            updateStats(data);
+        });
+        
+        socket.on('subbot_connecting', (data) => {
+            addLog(`🔗 Connexion du sous-bot ${data.number}...`);
+            updateSubbotList({ number: data.number, connected: false });
+        });
+        
+        socket.on('subbot_connected', (data) => {
+            addLog(`✅ Sous-bot ${data.number} connecté avec succès !`, 'success');
+            updateSubbotList({ number: data.number, connected: true });
+        });
+        
+        socket.on('subbot_disconnected', (data) => {
+            addLog(`⚠️ Sous-bot ${data.number} déconnecté (code: ${data.code})`, 'warning');
+        });
+        
+        socket.on('subbot_error', (data) => {
+            addLog(`❌ Erreur sous-bot ${data.number}: ${data.error}`, 'error');
+        });
+        
+        socket.on('subbot_removed', (data) => {
+            addLog(`🗑️ Sous-bot ${data.number} supprimé (${data.reason})`, 'warning');
+            const card = document.getElementById(`subbot-${data.number}`);
+            if (card) card.remove();
+        });
+        
+        socket.on('subbot_restarting', (data) => {
+            addLog(`🔄 Redémarrage du sous-bot ${data.number}...`, 'warning');
+        });
+        
+        socket.on('main_connected', (data) => {
+            addLog(`✅ Bot principal connecté: ${data.jid}`, 'success');
+        });
+        
+        socket.on('main_disconnected', (data) => {
+            addLog(`⚠️ Bot principal déconnecté (code: ${data.code})`, 'warning');
+        });
+        
+        socket.on('notification', (data) => {
+            addLog(data.message, data.type);
+        });
+        
+        // Rafraîchir les stats toutes les 30 secondes
+        setInterval(() => {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    updateStats(data);
+                })
+                .catch(() => {});
+        }, 30000);
+        
+        // Chargement initial
+        fetch('/api/stats')
+            .then(res => res.json())
+            .then(data => {
+                updateStats(data);
+                if (data.subBots && data.subBots.list) {
+                    data.subBots.list.forEach(bot => {
+                        updateSubbotList(bot);
+                    });
+                }
+            })
+            .catch(err => addLog('Erreur chargement stats: ' + err.message, 'error'));
+        
+        addLog('🚀 Dashboard ZENITSU BOT PRO initialised', 'success');
+    </script>
+</body>
+</html>
