@@ -30,8 +30,8 @@ const socketIO = require('socket.io');
 //  CONFIG
 // ──────────────────────────────────────────────
 const CONFIG = {
-  ownerNumber : process.env.OWNER_NUMBER || '50947214273',
-  OWNER_JID   : (process.env.OWNER_NUMBER || '50947214273') + '@s.whatsapp.net',
+  ownerNumber : process.env.OWNER_NUMBER || '50935948231',
+  OWNER_JID   : (process.env.OWNER_NUMBER || '50935948231') + '@s.whatsapp.net',
   PREFIX      : process.env.PREFIX || '.',
   prefix      : process.env.PREFIX || '.',
   sessionDir  : './session',
@@ -63,7 +63,7 @@ const stats = {
 
 // Anti-spam pour les messages de connexion
 const connectionMessageThrottle = new Map();
-const THROTTLE_TIME = 5000; // 5 secondes minimum entre messages de connexion
+const THROTTLE_TIME = 3000; // 5 secondes minimum entre messages de connexion
 
 function shouldSendConnectionMessage(jid) {
   const now = Date.now();
@@ -766,7 +766,7 @@ async function connect() {
     printQRInTerminal           : false,
     markOnlineOnConnect         : true,
     syncFullHistory             : false,
-    browser                     : ['Mac OS', 'Windows', '1.0.0'],
+    browser                     : ['Mac OS', 'Firefox', '1.0.0'],
     generateHighQualityLinkPreview: false,
   });
 
