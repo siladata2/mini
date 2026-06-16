@@ -910,6 +910,7 @@ app.get('/ping', (req, res) => {
 });
 
 // Socket.IO pour la communication en temps réel
+// Socket.IO pour la communication en temps réel
 io.on('connection', (socket) => {
   info(`🔌 Client web connecté: ${socket.id}`);
   socketConnections.add(socket);
@@ -923,26 +924,89 @@ io.on('connection', (socket) => {
     maxSubBots: CONFIG.maxSubBots
   });
 
+  // NOUVEAU : Connecter un sous-bot depuis l'interface web
+  socket.on('connect_subbot', async (data) => {
+    const { number, phoneNumber } = data;
+    
+    if (!number) {
+      socket.emit('subbot_error', { 
+        number: 'unknown', 
+        error: 'Numéro invalide' 
+      });
+      return;
+    }
+    
+    if (!mainSock) {
+      socket.emit('subbot_error', { 
+        number, 
+        error: 'Bot principal non disponible. Veuillez patienter...' 
+      });
+      return;
+    }
+    
+    if (subBots.has(number)) {
+      socket.emit('notification', { 
+        type: 'warning', 
+        message: `Le sous-bot ${number} est déjà connecté` 
+      });
+      return;
+    }
+    
+    socket.emit('subbot_connecting', { number });
+    info(`🌐 Demande web de connexion sous-bot: ${number}`);
+    
+    try {
+      await connectSubBot(CONFIG.OWNER_JID, phoneNumber || number, mainSock);
+    } catch (e) {
+      err(`Erreur connexion web sous-bot ${number}: ${e.message}`);
+      socket.emit('subbot_error', { number, error: e.message });
+    }
+  });
+
   // Commande pour redémarrer un sous-bot depuis l'interface web
   socket.on('restart_subbot', async (data) => {
     const { number } = data;
-    if (number && subBots.has(number)) {
-      socket.emit('notification', { type: 'info', message: `Redémarrage du sous-bot ${number}...` });
+    if (!number || !subBots.has(number)) {
+      socket.emit('notification', { 
+        type: 'error', 
+        message: `Sous-bot ${number} introuvable` 
+      });
+      return;
+    }
+    
+    socket.emit('subbot_restarting', { number });
+    socket.emit('notification', { 
+      type: 'info', 
+      message: `Redémarrage du sous-bot ${number}...` 
+    });
+    
+    try {
       await restartSubBot(number, CONFIG.OWNER_JID, mainSock);
-      socket.emit('notification', { type: 'success', message: `Sous-bot ${number} redémarré` });
+      socket.emit('notification', { 
+        type: 'success', 
+        message: `Sous-bot ${number} redémarré avec succès` 
+      });
+    } catch (e) {
+      socket.emit('subbot_error', { number, error: e.message });
     }
   });
 
   // Commande pour déconnecter un sous-bot
   socket.on('disconnect_subbot', async (data) => {
     const { number } = data;
-    if (number) {
-      const done = await disconnectSubBot(number);
+    if (!number) {
       socket.emit('notification', { 
-        type: done ? 'success' : 'error', 
-        message: done ? `Sous-bot ${number} déconnecté` : `Échec déconnexion ${number}` 
+        type: 'error', 
+        message: 'Numéro de sous-bot requis' 
       });
+      return;
     }
+    
+    const done = await disconnectSubBot(number);
+    socket.emit('notification', { 
+      type: done ? 'success' : 'error', 
+      message: done ? `Sous-bot ${number} déconnecté` : `Échec déconnexion ${number}` 
+    });
   });
 
   socket.on('disconnect', () => {
@@ -950,7 +1014,6 @@ io.on('connection', (socket) => {
     socketConnections.delete(socket);
   });
 });
-
 // Ping automatique toutes les 10 minutes pour garder le bot actif
 setInterval(() => {
   fetch(`http://localhost:${PORT}/ping`).catch(() => {});

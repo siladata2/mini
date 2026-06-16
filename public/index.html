@@ -9,7 +9,7 @@
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
             color: #fff;
         }
@@ -66,8 +66,17 @@
         
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 30px;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: fit-content;
         }
         
         .panel {
@@ -78,9 +87,89 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .panel h2 {
+        .panel h2, .control-panel h2 {
             margin-bottom: 20px;
             color: #667eea;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0aec0;
+            font-weight: 600;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 15px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-connect {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-connect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-refresh {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-refresh:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            line-height: 1.6;
         }
         
         .subbot-list {
@@ -93,9 +182,6 @@
             background: rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s;
         }
@@ -105,13 +191,20 @@
             border-color: #667eea;
         }
         
-        .subbot-info h3 {
-            color: #fff;
-            margin-bottom: 5px;
+        .subbot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .subbot-number {
+            font-size: 1.2em;
+            font-weight: bold;
         }
         
         .status-badge {
-            padding: 5px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: 600;
@@ -123,21 +216,28 @@
             border: 1px solid #48bb78;
         }
         
+        .status-qr {
+            background: rgba(246, 173, 85, 0.2);
+            color: #f6ad55;
+            border: 1px solid #f6ad55;
+        }
+        
         .status-disconnected {
             background: rgba(245, 101, 101, 0.2);
             color: #f56565;
             border: 1px solid #f56565;
         }
         
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9em;
-            margin-left: 10px;
+        .subbot-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-sm {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+            margin-bottom: 0;
         }
         
         .btn-restart {
@@ -150,17 +250,33 @@
             color: white;
         }
         
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        .qr-container {
+            margin-top: 15px;
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .qr-container img {
+            max-width: 200px;
+        }
+        
+        .qr-code-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 3px;
+            margin-top: 10px;
         }
         
         .logs {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
             padding: 20px;
+            margin-top: 20px;
         }
         
         .log-entry {
@@ -168,7 +284,7 @@
             border-left: 3px solid #667eea;
             margin-bottom: 10px;
             font-family: 'Courier New', monospace;
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
         
         .log-entry.error { border-left-color: #f56565; color: #fc8181; }
@@ -177,31 +293,18 @@
         
         .log-time {
             color: #a0aec0;
-            font-size: 0.85em;
+            font-size: 0.8em;
         }
         
-        .quick-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .action-btn {
-            padding: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
+        .empty-state {
             text-align: center;
+            padding: 40px;
+            color: #a0aec0;
         }
         
-        .action-btn:hover {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: #667eea;
+        .empty-state .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
         }
         
         @media (max-width: 768px) {
@@ -237,20 +340,54 @@
         </div>
         
         <div class="main-content">
-            <div class="panel">
-                <h2>🤖 Sous-bots Connectés</h2>
-                <div class="subbot-list" id="subbotList">
-                    <div style="text-align: center; padding: 40px; color: #a0aec0;">
-                        Aucun sous-bot connecté
+            <div class="control-panel">
+                <h2>🎮 Connecter un Sous-bot</h2>
+                
+                <div class="info-box">
+                    📱 <strong>Comment ça marche ?</strong><br>
+                    1. Entrez le numéro de téléphone avec l'indicatif<br>
+                    2. Cliquez sur "Connecter"<br>
+                    3. Un code de jumelage s'affichera ci-dessous<br>
+                    4. Entrez ce code dans WhatsApp → Appareils liés
+                </div>
+                
+                <div class="form-group">
+                    <label>📞 Numéro de téléphone</label>
+                    <input 
+                        type="text" 
+                        id="phoneNumber" 
+                        placeholder="Exemple : +22960000000 ou 22960000000"
+                        autocomplete="off"
+                    >
+                </div>
+                
+                <button class="btn btn-connect" onclick="connectSubbot()">
+                    🔗 Connecter le Sous-bot
+                </button>
+                
+                <button class="btn btn-refresh" onclick="refreshStats()">
+                    🔄 Rafraîchir
+                </button>
+                
+                <div id="pairCodeArea" style="margin-top: 20px;"></div>
+                
+                <div class="logs" style="margin-top: 20px; max-height: 300px;">
+                    <div style="color: #667eea; margin-bottom: 15px;">📋 Logs en Direct</div>
+                    <div id="logs">
+                        <div class="log-entry">
+                            <span class="log-time">[Système]</span> Dashboard initialisé...
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="panel">
-                <h2>📋 Logs en Direct</h2>
-                <div class="logs" id="logs">
-                    <div class="log-entry">
-                        <span class="log-time">[Système]</span> Dashboard initialisé...
+                <h2>🤖 Sous-bots Connectés</h2>
+                <div class="subbot-list" id="subbotList">
+                    <div class="empty-state">
+                        <div class="icon">🤖</div>
+                        <p>Aucun sous-bot connecté</p>
+                        <p style="font-size: 0.9em; margin-top: 5px;">Utilisez le formulaire pour en connecter un</p>
                     </div>
                 </div>
             </div>
@@ -260,6 +397,8 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        const subbots = new Map();
+        let currentPairCode = null;
         
         function addLog(message, type = 'info') {
             const logsDiv = document.getElementById('logs');
@@ -269,7 +408,6 @@
             logEntry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
             logsDiv.insertBefore(logEntry, logsDiv.firstChild);
             
-            // Garder seulement les 100 derniers logs
             while (logsDiv.children.length > 100) {
                 logsDiv.removeChild(logsDiv.lastChild);
             }
@@ -282,51 +420,193 @@
             document.getElementById('subbots').textContent = `${data.subBotsCount || 0}/50`;
         }
         
-        function updateSubbotList(subbot) {
-            const listDiv = document.getElementById('subbotList');
-            const emptyMsg = listDiv.querySelector('div[style]');
-            if (emptyMsg) emptyMsg.remove();
+        function connectSubbot() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
             
-            let card = document.getElementById(`subbot-${subbot.number}`);
-            if (!card) {
-                card = document.createElement('div');
-                card.className = 'subbot-card';
-                card.id = `subbot-${subbot.number}`;
-                card.innerHTML = `
-                    <div class="subbot-info">
-                        <h3>📱 +${subbot.number}</h3>
-                        <span class="status-badge" id="status-${subbot.number}">Connexion...</span>
-                    </div>
-                    <div>
-                        <button class="btn btn-restart" onclick="restartSubbot('${subbot.number}')">🔄 Restart</button>
-                        <button class="btn btn-disconnect" onclick="disconnectSubbot('${subbot.number}')">✕</button>
-                    </div>
-                `;
-                listDiv.appendChild(card);
+            if (!phoneNumber) {
+                addLog('❌ Veuillez entrer un numéro de téléphone', 'error');
+                alert('Veuillez entrer un numéro de téléphone');
+                return;
             }
             
-            const statusBadge = document.getElementById(`status-${subbot.number}`);
-            if (subbot.connected) {
-                statusBadge.className = 'status-badge status-connected';
-                statusBadge.textContent = '🟢 Connecté';
-            } else {
-                statusBadge.className = 'status-badge status-disconnected';
-                statusBadge.textContent = '🔴 Déconnecté';
+            // Nettoyer le numéro
+            const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+            
+            if (cleanNumber.length < 7 || cleanNumber.length > 15) {
+                addLog('❌ Numéro de téléphone invalide', 'error');
+                alert('Numéro de téléphone invalide (7-15 chiffres)');
+                return;
             }
+            
+            if (subbots.has(cleanNumber)) {
+                addLog(`⚠️ Le sous-bot ${cleanNumber} est déjà connecté`, 'warning');
+                alert('Ce sous-bot est déjà connecté');
+                return;
+            }
+            
+            addLog(`🔗 Demande de connexion pour le sous-bot ${cleanNumber}...`);
+            
+            // Envoyer la demande au serveur
+            socket.emit('connect_subbot', { 
+                number: cleanNumber,
+                phoneNumber: phoneNumber 
+            });
+            
+            // Désactiver le bouton temporairement
+            const btn = document.querySelector('.btn-connect');
+            btn.disabled = true;
+            btn.textContent = '⏳ Connexion en cours...';
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = '🔗 Connecter le Sous-bot';
+            }, 10000);
         }
         
         function restartSubbot(number) {
-            socket.emit('restart_subbot', { number });
-            addLog(`🔄 Redémarrage du sous-bot ${number}...`, 'warning');
+            if (confirm(`Voulez-vous redémarrer le sous-bot ${number} ?`)) {
+                socket.emit('restart_subbot', { number });
+                addLog(`🔄 Redémarrage du sous-bot ${number}...`, 'warning');
+            }
         }
         
         function disconnectSubbot(number) {
             if (confirm(`Voulez-vous vraiment déconnecter le sous-bot ${number} ?`)) {
                 socket.emit('disconnect_subbot', { number });
                 addLog(`🗑️ Déconnexion du sous-bot ${number}...`, 'warning');
+                
+                // Supprimer la carte
                 const card = document.getElementById(`subbot-${number}`);
-                if (card) card.remove();
+                if (card) {
+                    card.style.opacity = '0.5';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => card.remove(), 300);
+                }
+                
+                subbots.delete(number);
+                updateEmptyState();
             }
+        }
+        
+        function showPairCode(number, code) {
+            const pairArea = document.getElementById('pairCodeArea');
+            const formattedCode = code.match(/.{1,4}/g).join('-');
+            
+            pairArea.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 15px; text-align: center;">
+                    <div style="color: #333; margin-bottom: 15px; font-weight: bold;">
+                        🔑 CODE DE JUMELAGE
+                    </div>
+                    <div style="font-size: 2em; font-weight: bold; color: #667eea; letter-spacing: 5px; margin: 15px 0;">
+                        ${formattedCode}
+                    </div>
+                    <div style="color: #666; font-size: 0.9em; margin-top: 15px;">
+                        📱 Numéro : +${number}<br>
+                        ⚡ Ouvrez WhatsApp → Appareils liés → Lier avec un numéro
+                    </div>
+                    <div style="margin-top: 10px; color: #999; font-size: 0.8em;">
+                        Ce code expire dans quelques minutes
+                    </div>
+                </div>
+            `;
+            
+            currentPairCode = { number, code };
+            
+            // Faire défiler jusqu'au code
+            pairArea.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function updateSubbotCard(number, status, data = {}) {
+            const listDiv = document.getElementById('subbotList');
+            
+            // Supprimer le message "aucun sous-bot"
+            const emptyState = listDiv.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+            
+            let card = document.getElementById(`subbot-${number}`);
+            
+            if (!card) {
+                card = document.createElement('div');
+                card.className = 'subbot-card';
+                card.id = `subbot-${number}`;
+                card.innerHTML = `
+                    <div class="subbot-header">
+                        <div class="subbot-number">📱 +${number}</div>
+                        <span class="status-badge" id="status-${number}">Connexion...</span>
+                    </div>
+                    <div class="subbot-actions">
+                        <button class="btn btn-sm btn-restart" onclick="restartSubbot('${number}')">🔄 Restart</button>
+                        <button class="btn btn-sm btn-disconnect" onclick="disconnectSubbot('${number}')">✕ Déconnecter</button>
+                    </div>
+                    <div id="qr-${number}"></div>
+                `;
+                listDiv.appendChild(card);
+            }
+            
+            const statusBadge = document.getElementById(`status-${number}`);
+            statusBadge.className = 'status-badge';
+            
+            switch(status) {
+                case 'connected':
+                    statusBadge.classList.add('status-connected');
+                    statusBadge.textContent = '🟢 Connecté';
+                    break;
+                case 'qr':
+                    statusBadge.classList.add('status-qr');
+                    statusBadge.textContent = '📱 En attente du code';
+                    break;
+                case 'connecting':
+                    statusBadge.classList.add('status-qr');
+                    statusBadge.textContent = '🟡 Connexion...';
+                    break;
+                case 'disconnected':
+                    statusBadge.classList.add('status-disconnected');
+                    statusBadge.textContent = '🔴 Déconnecté';
+                    break;
+                default:
+                    statusBadge.classList.add('status-qr');
+                    statusBadge.textContent = '🟡 ' + status;
+            }
+            
+            // Afficher le QR si disponible
+            if (data.qr) {
+                const qrDiv = document.getElementById(`qr-${number}`);
+                qrDiv.innerHTML = `
+                    <div class="qr-container">
+                        <div style="color: #333; font-weight: bold; margin-bottom: 10px;">
+                            📱 Scannez ce QR Code
+                        </div>
+                        <img src="${data.qr}" alt="QR Code">
+                    </div>
+                `;
+            }
+            
+            subbots.set(number, { status, ...data });
+        }
+        
+        function updateEmptyState() {
+            const listDiv = document.getElementById('subbotList');
+            if (subbots.size === 0 && !listDiv.querySelector('.empty-state')) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🤖</div>
+                        <p>Aucun sous-bot connecté</p>
+                        <p style="font-size: 0.9em; margin-top: 5px;">Utilisez le formulaire pour en connecter un</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function refreshStats() {
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    updateStats(data);
+                    addLog('📊 Stats rafraîchies', 'success');
+                })
+                .catch(() => {
+                    addLog('❌ Erreur lors du rafraîchissement', 'error');
+                });
         }
         
         // Écouteurs Socket.IO
@@ -336,16 +616,35 @@
         
         socket.on('subbot_connecting', (data) => {
             addLog(`🔗 Connexion du sous-bot ${data.number}...`);
-            updateSubbotList({ number: data.number, connected: false });
+            updateSubbotCard(data.number, 'connecting');
+        });
+        
+        socket.on('subbot_qr', (data) => {
+            addLog(`📱 Code de jumelage reçu pour ${data.number}`, 'success');
+            showPairCode(data.number, data.code);
+            updateSubbotCard(data.number, 'qr');
         });
         
         socket.on('subbot_connected', (data) => {
             addLog(`✅ Sous-bot ${data.number} connecté avec succès !`, 'success');
-            updateSubbotList({ number: data.number, connected: true });
+            updateSubbotCard(data.number, 'connected');
+            
+            // Effacer le code de jumelage après connexion
+            if (currentPairCode && currentPairCode.number === data.number) {
+                setTimeout(() => {
+                    document.getElementById('pairCodeArea').innerHTML = '';
+                    currentPairCode = null;
+                }, 3000);
+            }
         });
         
         socket.on('subbot_disconnected', (data) => {
-            addLog(`⚠️ Sous-bot ${data.number} déconnecté (code: ${data.code})`, 'warning');
+            addLog(`⚠️ Sous-bot ${data.number} déconnecté`, 'warning');
+            updateSubbotCard(data.number, 'disconnected');
+        });
+        
+        socket.on('subbot_reconnecting', (data) => {
+            addLog(`🔄 Reconnexion du sous-bot ${data.number} (tentative ${data.attempt}/${data.maxRetries})`, 'warning');
         });
         
         socket.on('subbot_error', (data) => {
@@ -356,10 +655,21 @@
             addLog(`🗑️ Sous-bot ${data.number} supprimé (${data.reason})`, 'warning');
             const card = document.getElementById(`subbot-${data.number}`);
             if (card) card.remove();
+            subbots.delete(data.number);
+            updateEmptyState();
         });
         
         socket.on('subbot_restarting', (data) => {
             addLog(`🔄 Redémarrage du sous-bot ${data.number}...`, 'warning');
+            updateSubbotCard(data.number, 'connecting');
+        });
+        
+        socket.on('subbot_failed', (data) => {
+            addLog(`❌ Échec définitif du sous-bot ${data.number}`, 'error');
+            const card = document.getElementById(`subbot-${data.number}`);
+            if (card) card.remove();
+            subbots.delete(data.number);
+            updateEmptyState();
         });
         
         socket.on('main_connected', (data) => {
@@ -367,22 +677,22 @@
         });
         
         socket.on('main_disconnected', (data) => {
-            addLog(`⚠️ Bot principal déconnecté (code: ${data.code})`, 'warning');
+            addLog(`⚠️ Bot principal déconnecté`, 'warning');
         });
         
         socket.on('notification', (data) => {
             addLog(data.message, data.type);
         });
         
-        // Rafraîchir les stats toutes les 30 secondes
-        setInterval(() => {
-            fetch('/api/stats')
-                .then(res => res.json())
-                .then(data => {
-                    updateStats(data);
-                })
-                .catch(() => {});
-        }, 30000);
+        // Permettre d'appuyer sur Entrée pour connecter
+        document.getElementById('phoneNumber').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                connectSubbot();
+            }
+        });
+        
+        // Rafraîchir les stats automatiquement
+        setInterval(refreshStats, 30000);
         
         // Chargement initial
         fetch('/api/stats')
@@ -391,13 +701,14 @@
                 updateStats(data);
                 if (data.subBots && data.subBots.list) {
                     data.subBots.list.forEach(bot => {
-                        updateSubbotList(bot);
+                        updateSubbotCard(bot.number, bot.connected ? 'connected' : 'disconnected');
                     });
                 }
+                addLog('🚀 Dashboard chargé avec succès', 'success');
             })
             .catch(err => addLog('Erreur chargement stats: ' + err.message, 'error'));
         
-        addLog('🚀 Dashboard ZENITSU BOT PRO initialised', 'success');
+        addLog('🟢 Dashboard ZENITSU BOT PRO ready', 'success');
     </script>
 </body>
 </html>
