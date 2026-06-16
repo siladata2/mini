@@ -7,8 +7,8 @@ module.exports = {
         const start = Date.now()
 
         await sock.sendMessage(from, {
-            text: 'Pinging...'
-        })
+            react: { text: "⚡", key: msg.key }
+        });
 
         const end = Date.now()
 

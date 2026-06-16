@@ -56,29 +56,23 @@ module.exports = {
 ┃
 ┃  ${customText}
 ┃
-┃  📊 *Statistiques :*
-┃  • Membres : ${participants.length}
-┃  • Groupe : ${group.subject}
-┃  • Créé par : ${group.owner?.split('@')[0] || 'Inconnu'}
+┃  • Members : ${participants.length}
+┃  • Group : ${group.subject}
+┃  • Owner : ${group.owner?.split('@')[0] || 'Inconnu'}
 ┃  • Date : ${new Date().toLocaleDateString()}
-┃
-┃  👥 *Membres mentionnés :*
-`;
+┃`;
 
             // Créer les mentions cachées
             const mentionsList = participants.map((p, i) => {
                 const name = p.split('@')[0];
                 return `┃  ${i+1}. @${name}`;
-            }).join('\n');
+            }).join('\n• ');
 
             const footer = `
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-⚠️ *Message important*
-_Lisez attentivement le message ci-dessus._
-
-━━━━━━━━━━━━━━━
+*𝙛𝙤𝙡𝙡𝙤𝙬 𝙩𝙝𝙚 𝙘𝙝𝙖𝙣𝙣𝙚𝙡 ツ , 𝙧𝙚𝙨𝙥𝙚𝙘𝙩 𝙖𝙙𝙢𝙞𝙣𝙨 ♕, 𝙨𝙢𝙞𝙡𝙚 ☹*
 _©CybernovA_`;
 
             // Combiner le tout
@@ -141,10 +135,6 @@ _©CybernovA_`;
                 });
             }
 
-            // Message de confirmation
-            await sock.sendMessage(from, {
-                text: `✅ *Tagall terminé !*\n\n👥 ${participants.length} membres ont été mentionnés.\n📢 Message: "${customText.substring(0, 50)}${customText.length > 50 ? '...' : ''}"\n\n━━━━━━━━━━━━━━━\n_©CybernovA_`
-            }, { quoted: msg });
 
         } catch (error) {
             console.error('❌ Erreur tagall:', error);

@@ -32,10 +32,6 @@ module.exports = {
             });
         }
 
-        await sock.sendMessage(from, {
-            text: '📥 *Téléchargement en cours...*\n\n_Veuillez patienter quelques instants._'
-        }, { quoted: msg });
-
         try {
             // API gratuite TikWM
             const response = await axios.post('https://www.tikwm.com/api/', {
@@ -62,26 +58,24 @@ module.exports = {
             // Style message transféré Cybernova
             const caption = `╭━━━━❲ *TIKTOK DOWNLOAD* ❳━━━━╮
 ┃
-┃  🎵 *Titre :* 
+┃  🎵 *Title :* 
 ┃  ${data.title?.substring(0, 60) || 'Sans titre'}
 ┃
-┃  👤 *Auteur :* @${data.author?.unique_id || 'Inconnu'}
+┃  👤 *Author :* @${data.author?.unique_id || 'Inconnu'}
 ┃  ❤️ *Likes :* ${formatNumber(data.digg_count)}
-┃  💬 *Commentaires :* ${formatNumber(data.comment_count)}
+┃  💬 *Comments :* ${formatNumber(data.comment_count)}
 ┃  👁️ *Vues :* ${formatNumber(data.play_count)}
-┃  ⏱️ *Durée :* ${data.duration || 0} secondes
+┃  ⏱️ *Duration:* ${data.duration || 0} secondes
 ┃  🎶 *Musique :* ${data.music_info?.title?.substring(0, 40) || 'Inconnue'}
 ┃
-┃  📊 *Statistiques :*
-┃  • Partages : ${formatNumber(data.share_count)}
+┃  📊 *Statistics :*
+┃  • forwards : ${formatNumber(data.share_count)}
 ┃  • Téléchargements : ${formatNumber(data.download_count)}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-*✅ Téléchargement réussi !*
-
-_Sans watermark • Qualité HD_
-
+_Without watermark • Quality HD_
+𝙛𝙤𝙡𝙡𝙤𝙬 𝙩𝙝𝙚 𝙘𝙝𝙖𝙣𝙣𝙚𝙡 ツ & 𝙨𝙢𝙞𝙡𝙚 ☹
 ━━━━━━━━━━━━━━━
 _©CybernovA_`;
 
@@ -141,7 +135,7 @@ _©CybernovA_`;
             // Message de confirmation final
             await delay(2000);
             await sock.sendMessage(from, {
-                text: `✅ *Téléchargement terminé !*\n\n📁 Fichier envoyé avec succès\n⏱️ Durée: ${data.duration || 0}s\n📊 Poids: ~${(data.size || 0) / 1024 / 1024} MB\n\n━━━━━━━━━━━━━━━\n_©CybernovA_`
+                text: `✅ \n⏱️ Duration: ${data.duration || 0}s\n📊 Size: ~${(data.size || 0) / 1024 / 1024} MB\n\n━━━━━━━━━━━━━━━\n_©CybernovA_`
             }, { quoted: msg });
 
         } catch (err) {

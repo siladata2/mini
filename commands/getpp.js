@@ -29,7 +29,7 @@ module.exports = {
                 let number = args[0].replace(/[^0-9]/g, '');
                 if (number.length < 10) {
                     return sock.sendMessage(from, {
-                        text: '❌ *Numéro invalide*\n\nUtilisation: `.getpp 584168698003`\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
+                        text: '❌ *Invalid number*\n\nUsage: `.getpp 50941612345`\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
                     }, { quoted: msg });
                 }
                 target = `${number}@s.whatsapp.net`;
@@ -76,10 +76,10 @@ module.exports = {
             // Style Cybernova
             const caption = `╭━━━━❲ *PHOTO DE PROFIL* ❳━━━━╮
 ┃
-┃  👤 *Utilisateur :* @${targetName}
-┃  📦 *Qualité :* HD
-┃  📏 *Taille :* ${fileSizeKB} KB
-┃  📅 *Récupérée le :* ${new Date().toLocaleDateString()}
+┃  👤 *User :* @${targetName}
+┃  📦 *Quality :* HD
+┃  📏 *Size:* ${fileSizeKB} KB
+┃  📅 *Time :* ${new Date().toLocaleDateString()}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
@@ -98,7 +98,7 @@ _©CybernovA_`;
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363425394543602@newsletter',
                         newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                        serverMessageId: 195
+                        serverMessageId: 202
                     }
                 }
             }, { quoted: msg });
@@ -120,23 +120,22 @@ _©CybernovA_`;
             
             let errorMsg = `╭━━━━❲ *ERREUR GETPP* ❳━━━━╮
 ┃
-┃  ❌ *Impossible de récupérer*
-┃  *la photo de profil*
+┃  ❌ *Failed to get profile picture*
 ┃
 `;
 
             if (error.message.includes('timeout')) {
-                errorMsg += `┃  ⏰ *Délai dépassé*
+                errorMsg += `┃  ⏰ *Timeout*
 ┃
-┃  💡 *Réessayez dans quelques instants*
+┃  💡 *Retry !*
 `;
             } else if (error.message.includes('404')) {
-                errorMsg += `┃  🔍 *Photo non trouvée*
+                errorMsg += `┃  🔍 *Not foud*
 ┃
-┃  💡 *L'utilisateur n'a pas de photo*
+┃  💡 *No profile pic*
 `;
             } else {
-                errorMsg += `┃  📝 *Erreur :* ${error.message.substring(0, 40)}
+                errorMsg += `┃  📝 *Error :* ${error.message.substring(0, 40)}
 `;
             }
 

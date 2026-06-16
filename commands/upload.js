@@ -201,7 +201,7 @@ module.exports = {
                     });
                 }
                 return sock.sendMessage(from, {
-                    text: '❌ *Utilisation:*\n\n_Réponds à une image, vidéo, audio ou document avec `.upload`_\n\n*Exemple:*\n`.upload` (en répondant à un média)\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
+                    text: '❌\n*Exemple:*\n`.upload & reply with media`)\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
                 }, { quoted: msg });
             }
 
@@ -234,7 +234,7 @@ module.exports = {
                 mediaName = '🎵 Audio';
             } else {
                 return sock.sendMessage(from, {
-                    text: '❌ *Type non supporté*\n\nFormats acceptés :\n• Image 📷\n• Vidéo 🎬\n• Document 📄\n• Audio 🎵\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
+                    text: '❌ *Type not supported*\n\nFormats :\n• Image 📷\n• Vidéo 🎬\n• Document 📄\n• Audio 🎵\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
                 }, { quoted: msg });
             }
 
@@ -274,21 +274,18 @@ module.exports = {
             // Style Cybernova
             const messageText = `╭━━━━❲ *UPLOAD - SUCCÈS* ❳━━━━╮
 ┃
-┃  📁 *Fichier :* ${mediaName}
-┃  📦 *Taille :* ${sizeDisplay}
+┃  📁 *File :* ${mediaName}
+┃  📦 *Size :* ${sizeDisplay}
 ┃  ☁️ *Service :* ${result.service}
-┃  🔗 *Lien direct :*
+┃  🔗 *Link :*
 ┃  ${result.url}
 ┃
-┃  📊 *Statistiques :*
-┃  • Uploadé le : ${new Date().toLocaleDateString()}
-┃  • À : ${new Date().toLocaleTimeString()}
+┃  📊 *Statistics :*
+┃  •  ${new Date().toLocaleDateString()}
+┃  •  ${new Date().toLocaleTimeString()}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-💡 *Le lien expire selon les conditions du service*
-
-━━━━━━━━━━━━━━━
 _©CybernovA_`;
 
             await sock.sendMessage(from, {
@@ -316,27 +313,22 @@ _©CybernovA_`;
 
             let errorMessage = `╭━━━━❲ *ERREUR UPLOAD* ❳━━━━╮
 ┃
-┃  ❌ *Échec de l'upload*
+┃  ❌ *Érror upload*
 ┃
 `;
 
             if (err.message.includes('Tous les services')) {
-                errorMessage += `┃  🌐 *Tous les services sont*
-┃  *indisponibles*
+                errorMessage += `┃  🌐 *All services unavailable*
+┃
 ┃
 ┃  💡 *Solutions :*
-┃  • Réessayez dans quelques minutes
-┃  • Vérifiez votre connexion
-┃  • Fichier trop volumineux
-┃
+┃  • Retry after 5 minutes
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-━━━━━━━━━━━━━━━
 _©CybernovA_`;
             } else {
-                errorMessage += `┃  📝 *Erreur :* ${err.message.substring(0, 50)}
+                errorMessage += `┃  📝 *Errorr :* ${err.message.substring(0, 100)}
 ┃
-┃  💡 *Réessayez dans quelques instants*
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 

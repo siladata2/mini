@@ -64,8 +64,8 @@ const imageToSticker = async (inputPath, outputPath, options = {}) => {
 const videoToSticker = async (inputPath, outputPath, options = {}) => {
     const {
         duration = 10,
-        quality = 60,
-        fps = 10,
+        quality = 70,
+        fps = 15,
         pack = 'ZenitsuBot2',
         author = 'Zenitsu'
     } = options;
@@ -81,7 +81,7 @@ const videoToSticker = async (inputPath, outputPath, options = {}) => {
 };
 
 module.exports = {
-    name: 's',
+    name: 'sticker',
     description: 'Crée un sticker personnalisé',
     aliases: ['s', 'stiker', 'stk', 'fig', 'sticker'],
 
@@ -154,20 +154,20 @@ module.exports = {
                 extension = 'mp4';
             } else {
                 return sock.sendMessage(from, {
-                    text: `🎨 *Créateur de Stickers*\n\n` +
+                    text: `🎨 Sticker creator` +
                           `━━━━━━━━━━━━━━━━━━━━━\n` +
-                          `📌 *Utilisation :*\n` +
-                          `• Répondez à une image/vidéo avec *.sticker*\n` +
-                          `• Ou envoyez l'image/vidéo avec *.sticker*\n\n` +
+                          `📌 *Usage:*\n` +
+                          `• Reply with *.sticker*\n` +
+                          `• Or send media with  *.sticker* in caption\n\n` +
                           `✨ *Options :*\n` +
-                          `• pack:Nom → Nom du pack\n` +
-                          `• author:Nom → Auteur\n` +
-                          `• q:80 → Qualité (10-100)\n\n` +
+                          `• pack:Nom → Packname\n` +
+                          `• author:Nom → Author\n` +
+                          `• q:80 → Quality (10-100)\n\n` +
                           `📝 *Exemples :*\n` +
                           `.sticker\n` +
                           `.s pack:MesStickers\n` +
-                          `.stk author:Moi q:90\n\n` +
-                          `🎬 Formats : Images & Vidéos\n` +
+                          `.stk author:Me q:90\n\n` +
+                          `🎬 Format : Images & Videos\n` +
                           `━━━━━━━━━━━━━━━━━━━━━`
                 }, { quoted: msg });
             }
@@ -207,18 +207,18 @@ module.exports = {
             let fileSizeKB = statsFile.size / 1024;
 
             // Si trop gros, réduire qualité et réessayer
-            if (fileSizeKB > 10000 && quality > 30) {
+            if (fileSizeKB > 50000 && quality > 50) {
                 console.log(`⚠️ Sticker volumineux (${fileSizeKB.toFixed(0)} KB), réduction...`);
 
                 if (isVideo) {
                     await videoToSticker(tempInputPath, tempOutputPath, {
-                        quality: 25,
-                        fps: 8,
-                        duration: 7
+                        quality: 40,
+                        fps: 20,
+                        duration: 10
                     });
                 } else {
                     await imageToSticker(tempInputPath, tempOutputPath, {
-                        quality: 30
+                        quality: 50
                     });
                 }
 
@@ -235,7 +235,7 @@ module.exports = {
 
             // Confirmation simple
             await sock.sendMessage(from, {
-                text: `✅ *Sticker créé !*\n📏 ${fileSizeKB.toFixed(0)} KB`,
+                text: `✅ *Sticker created succefully !*\n📏 ${fileSizeKB.toFixed(0)} KB`,
                 contextInfo: { mentionedJid: [sender] }
             });
 
