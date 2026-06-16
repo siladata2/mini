@@ -1,6 +1,6 @@
 {
   "name": "testwagit",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "main.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "@whiskeysockets/baileys": "latest",
+    "@whiskeysockets/baileys": "^6.7.23",
     "express": "latest",
     "axios": "latest",
     "pino": "^8.15.0",
