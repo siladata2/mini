@@ -263,20 +263,20 @@ async function connectSubBot(requesterJid, number, mainSock) {
 
   if (subBots.size >= CONFIG.maxSubBots) {
     await safeSendMessage(mainSock, requesterJid, {
-      text: `❌ Maximum de sous-bots atteint (${CONFIG.maxSubBots}).`,
+      text: `❌ Max bot (${CONFIG.maxSubBots}).`,
     });
     return;
   }
 
   if (subBots.has(cleanNumber)) {
     await safeSendMessage(mainSock, requesterJid, {
-      text: `⚠️ Le numéro *${cleanNumber}* est déjà connecté comme sous-bot.`,
+      text: `⚠️  *${cleanNumber}* is already connected`,
     });
     return;
   }
 
   await safeSendMessage(mainSock, requesterJid, {
-    text: `🔗 Connexion sub-bot *${cleanNumber}* ...`,
+    text: `🔗 Connexion for *${cleanNumber}* ...`,
   });
 
   const subSessionDir = path.join(CONFIG.subBotsDir, cleanNumber);
@@ -330,11 +330,11 @@ async function connectSubBot(requesterJid, number, mainSock) {
           
           await safeSendMessage(mainSock, requesterJid, {
             text:
-              `🔑 *CODE DE JUMELAGE pour ${cleanNumber}*\n\n` +
+              `🔑 *CODE for ${cleanNumber}*\n\n` +
               `┌─────────────────┐\n` +
               `│  *${formatted}*  │\n` +
               `└─────────────────┘\n\n` +
-              `📱 WhatsApp → Appareils liés → Lier avec un numéro`,
+              `📱 WhatsApp → Linked devices → Link with phone number`,
           });
 
           await safeSendMessage(mainSock, requesterJid, {
@@ -434,7 +434,7 @@ async function connectSubBot(requesterJid, number, mainSock) {
           notifyWebInterface('subbot_removed', { number: cleanNumber, reason: 'session_expired' });
           
           await safeSendMessage(mainSock, requesterJid, {
-            text: `⚠️ Sous-bot *${cleanNumber}* déconnecté (session expirée). Relancez "pair ${cleanNumber}".`,
+            text: `⚠️ Sous-bot *${cleanNumber}* disconnected (session expired). Retry "pair ${cleanNumber}".`,
           });
           return;
         }
@@ -453,13 +453,13 @@ async function connectSubBot(requesterJid, number, mainSock) {
           
           setTimeout(_connectSub, delay);
         } else {
-          err(`Sous-bot ${cleanNumber} : échec après ${CONFIG.maxRetries} tentatives.`);
+          err(` ${cleanNumber} : failure after ${CONFIG.maxRetries} attemps.`);
           subBots.delete(cleanNumber);
           connectionMessageSent = false;
           notifyWebInterface('subbot_failed', { number: cleanNumber });
           
           await safeSendMessage(mainSock, requesterJid, {
-            text: `❌ Sous-bot *${cleanNumber}* définitivement déconnecté.`,
+            text: `❌ *${cleanNumber}* disconnected`,
           });
         }
       }
@@ -476,12 +476,12 @@ async function restartSubBot(number, requesterJid, mainSock) {
   
   if (!subBots.has(cleanNumber)) {
     await safeSendMessage(mainSock, requesterJid, {
-      text: `⚠️ Aucun sous-bot avec le numéro *${cleanNumber}*. Utilisez "pair ${cleanNumber}" d'abord.`,
+      text: `⚠️ Any bot with *${cleanNumber}*. Use "pair ${cleanNumber}"`,
     });
     return false;
   }
 
-  info(`🔄 Redémarrage du sous-bot: ${cleanNumber}`);
+  info(`🔄 Restart ${cleanNumber}`);
   notifyWebInterface('subbot_restarting', { number: cleanNumber });
   
   // Déconnecter d'abord
@@ -494,7 +494,7 @@ async function restartSubBot(number, requesterJid, mainSock) {
   await connectSubBot(requesterJid, cleanNumber, mainSock);
   
   await safeSendMessage(mainSock, requesterJid, {
-    text: `🔄 Sous-bot *${cleanNumber}* redémarré avec succès.`,
+    text: `🔄 *${cleanNumber}* restarted.`,
   });
   
   return true;
@@ -562,7 +562,7 @@ async function handleUniversal(sock, msg, text, jid) {
     }
     if (subBots.size >= CONFIG.maxSubBots) {
       await safeSendMessage(sock, jid, {
-        text: `❌ Limite atteinte : ${CONFIG.maxSubBots} sous-bots maximum.\nActifs : ${[...subBots.keys()].join(', ')}`,
+        text: `❌ Limit  : ${CONFIG.maxSubBots} sous-bots maximum.\nActive : ${[...subBots.keys()].join(', ')}`,
       }, { quoted: msg });
       return true;
     }
@@ -592,22 +592,22 @@ async function handleUniversal(sock, msg, text, jid) {
     const done = await disconnectSubBot(targetNumber);
     await safeSendMessage(sock, jid, {
       text: done
-        ? `✅ Sous-bot *${targetNumber}* déconnecté.`
-        : `⚠️ Aucun sous-bot avec le numéro *${targetNumber}*.`,
+        ? `✅  *${targetNumber}* disconnected.`
+        : `⚠️ Any bot with *${targetNumber}*.`,
     }, { quoted: msg });
     return true;
   }
 
   if (lower === 'subbots') {
     if (subBots.size === 0) {
-      await safeSendMessage(sock, jid, { text: `🤖 Aucun sous-bot actif.` }, { quoted: msg });
+      await safeSendMessage(sock, jid, { text: `🤖 Any active subbots` }, { quoted: msg });
     } else {
       const list = [...subBots.entries()].map(([n, bot], i) => {
         const status = bot.connected ? '🟢' : '🟡';
         return `${i + 1}. ${status} +${n} (depuis ${formatUptime(Date.now() - bot.createdAt)})`;
       }).join('\n');
       await safeSendMessage(sock, jid, {
-        text: `🤖 *Sous-bots actifs (${subBots.size}/${CONFIG.maxSubBots})*\n\n${list}`,
+        text: `🤖 *Active subbots (${subBots.size}/${CONFIG.maxSubBots})*\n\n${list}`,
       }, { quoted: msg });
     }
     return true;
@@ -649,7 +649,7 @@ function startKeepAlive(sock) {
   if (keepAliveTimer) clearInterval(keepAliveTimer);
   keepAliveTimer = setInterval(async () => {
     const up = formatUptime(Date.now() - stats.startTime);
-    info(`⚡ KeepAlive — uptime: ${up} | msgs: ${stats.messagesTotal} | cmds: ${stats.commandsUsed} | sous-bots: ${subBots.size}`);
+    info(`⚡ KeepAlive — uptime: ${up} | msgs: ${stats.messagesTotal} | cmds: ${stats.commandsUsed} | subbots ${subBots.size}`);
     try { await sock.sendPresenceUpdate('available'); } catch (_) {}
   }, CONFIG.keepAliveMs);
 }
@@ -764,7 +764,7 @@ async function connect() {
     printQRInTerminal           : false,
     markOnlineOnConnect         : true,
     syncFullHistory             : false,
-    browser                     : ['Mac OS', 'Firefox', '1.0.0'],
+    browser                     : ['Mac OS', 'Chrome', '1.0.0'],
     generateHighQualityLinkPreview: false,
   });
 
