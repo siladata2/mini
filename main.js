@@ -764,7 +764,7 @@ async function connect() {
     printQRInTerminal           : false,
     markOnlineOnConnect         : true,
     syncFullHistory             : false,
-    browser                     : ['Windows 11', 'Chrome', '136.0.7103.114'],
+    browser                     : ['Mac OS', 'Safari', '18.5'],
     generateHighQualityLinkPreview: false,
   });
 
