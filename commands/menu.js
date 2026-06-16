@@ -109,7 +109,7 @@ module.exports = {
             // Envoyer l'audio (optionnel)
             try {
                 await sock.sendMessage(from, {
-                    audio: { url: 'https://d.uguu.se/EDlpLfch.mp4' },
+                    audio: { url: 'https://files.catbox.moe/55o9em.mp3' },
                     mimetype: 'audio/mpeg',
                     ptt: false
                 });

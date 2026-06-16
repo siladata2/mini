@@ -12,7 +12,8 @@
     "@whiskeysockets/baileys": "latest",
     "express": "latest",
     "axios": "latest",
-    "pino": "lastest",
+    "pino": "^8.15.0",
+    "ffmpeg": "^8.1.1",
     "socket.io": "^4.7.2"
   },
   "devDependencies": {
