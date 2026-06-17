@@ -1,15 +1,13 @@
 const axios = require('axios');
-const fetch = require('node-fetch');
 
 // =========================
-// 🔥 CONFIGURATION DES IA
+// 🔥 FREE AI PROVIDERS (NO API KEY)
 // =========================
 const AI_PROVIDERS = [
-    // ===== SERVICES GRATUITS (SANS API KEY) =====
     {
         id: 1,
         name: 'Popcat',
-        description: 'Chatbot gratuit sans clé',
+        description: 'Fast & reliable chatbot',
         endpoint: 'https://api.popcat.xyz/chatbot',
         method: 'GET',
         format: (prompt) => ({
@@ -20,27 +18,27 @@ const AI_PROVIDERS = [
             }
         }),
         parse: (data) => data.response,
-        requiresKey: false
+        timeout: 10000
     },
     {
         id: 2,
         name: 'Petrified',
-        description: 'IA gratuite en ligne',
+        description: 'Free GPT-like API',
         endpoint: 'https://ai.petrified.workers.dev/gpt',
         method: 'POST',
         format: (prompt) => ({
             data: {
                 question: prompt,
-                context: 'Assistant IA'
+                context: 'You are a helpful assistant'
             }
         }),
         parse: (data) => data.response || data.message || data.reply,
-        requiresKey: false
+        timeout: 15000
     },
     {
         id: 3,
         name: 'Blowfish',
-        description: 'API IA libre',
+        description: 'Free AI chat API',
         endpoint: 'https://blowfish.workers.dev/api/chat',
         method: 'POST',
         format: (prompt) => ({
@@ -50,12 +48,12 @@ const AI_PROVIDERS = [
             }
         }),
         parse: (data) => data.response || data.message || data.text,
-        requiresKey: false
+        timeout: 15000
     },
     {
         id: 4,
         name: 'Lumina',
-        description: 'API IA gratuite',
+        description: 'Free AI generation',
         endpoint: 'https://lumina.workers.dev/ai',
         method: 'POST',
         format: (prompt) => ({
@@ -65,12 +63,12 @@ const AI_PROVIDERS = [
             }
         }),
         parse: (data) => data.response || data.output || data.text,
-        requiresKey: false
+        timeout: 15000
     },
     {
         id: 5,
         name: 'Kobold',
-        description: 'API IA gratuite',
+        description: 'Free text generation',
         endpoint: 'https://kobold.workers.dev/generate',
         method: 'POST',
         format: (prompt) => ({
@@ -80,12 +78,27 @@ const AI_PROVIDERS = [
             }
         }),
         parse: (data) => data.response || data.generated_text,
-        requiresKey: false
+        timeout: 15000
     },
     {
         id: 6,
+        name: 'Simsimi',
+        description: 'Simple chatbot',
+        endpoint: 'https://api.simsimi.vn/v1/simtalk',
+        method: 'GET',
+        format: (prompt) => ({
+            params: {
+                text: prompt,
+                lc: 'en'
+            }
+        }),
+        parse: (data) => data.message || data.response,
+        timeout: 10000
+    },
+    {
+        id: 7,
         name: 'Blackbox',
-        description: 'API IA gratuite',
+        description: 'Free AI assistant',
         endpoint: 'https://blackbox.workers.dev/api/chat',
         method: 'POST',
         format: (prompt) => ({
@@ -95,12 +108,12 @@ const AI_PROVIDERS = [
             }
         }),
         parse: (data) => data.response || data.answer || data.message,
-        requiresKey: false
+        timeout: 15000
     },
     {
-        id: 7,
+        id: 8,
         name: 'G4F',
-        description: 'API IA gratuite (GPT4Free)',
+        description: 'GPT4Free API',
         endpoint: 'https://g4f.workers.dev/api/v1/chat',
         method: 'POST',
         format: (prompt) => ({
@@ -110,51 +123,118 @@ const AI_PROVIDERS = [
             }
         }),
         parse: (data) => data.response || data.choices?.[0]?.message?.content,
-        requiresKey: false
+        timeout: 20000
     },
     {
-        id: 8,
-        name: 'Simsimi',
-        description: 'Chatbot simple gratuit',
-        endpoint: 'https://api.simsimi.vn/v1/simtalk',
-        method: 'GET',
+        id: 9,
+        name: 'DeepSeek',
+        description: 'Free AI chat',
+        endpoint: 'https://deepseek.workers.dev/api/chat',
+        method: 'POST',
         format: (prompt) => ({
-            params: {
-                text: prompt,
-                lc: 'fr'
+            data: {
+                message: prompt,
+                temperature: 0.7
             }
         }),
-        parse: (data) => data.message || data.response,
-        requiresKey: false
+        parse: (data) => data.response || data.message || data.text,
+        timeout: 15000
     },
-
-    // ===== SERVICES AVEC API KEY (FALLBACK) =====
+    {
+        id: 10,
+        name: 'Mistral',
+        description: 'Free Mistral API',
+        endpoint: 'https://mistral.workers.dev/api/generate',
+        method: 'POST',
+        format: (prompt) => ({
+            data: {
+                prompt: prompt,
+                max_tokens: 200
+            }
+        }),
+        parse: (data) => data.response || data.text || data.generated,
+        timeout: 15000
+    }
 ];
 
 // =========================
-// 📋 LISTE DES IA DISPONIBLES
+// 📋 GET PROVIDER LIST
 // =========================
-const getAIList = () => {
+const getProviderList = () => {
     return AI_PROVIDERS.map(p => 
-        `┃  ${p.id}. ${p.name}${p.requiresKey ? ' 🔑' : ' ✨'}\n┃     ${p.description}`
+        `┃  ${p.id}. ${p.name}\n┃     ${p.description}`
     ).join('\n');
+};
+
+// =========================
+// 🔍 SEARCH WITH FALLBACK
+// =========================
+const askAI = async (prompt, selectedId = null) => {
+    let providersToTry = AI_PROVIDERS;
+
+    if (selectedId) {
+        const selected = AI_PROVIDERS.find(p => p.id === selectedId);
+        if (selected) {
+            providersToTry = [selected, ...AI_PROVIDERS.filter(p => p.id !== selectedId)];
+        }
+    }
+
+    for (const provider of providersToTry) {
+        try {
+            console.log(`🤖 Trying ${provider.name}...`);
+            
+            const config = provider.format(prompt);
+            let responseData;
+
+            if (provider.method === 'GET') {
+                const res = await axios.get(provider.endpoint, {
+                    params: config.params || {},
+                    timeout: provider.timeout || 15000,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    }
+                });
+                responseData = res.data;
+            } else {
+                const res = await axios.post(provider.endpoint, config.data || {}, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    },
+                    timeout: provider.timeout || 15000
+                });
+                responseData = res.data;
+            }
+
+            const parsed = provider.parse(responseData);
+            if (parsed && typeof parsed === 'string' && parsed.trim().length > 0) {
+                return { response: parsed, provider: provider.name };
+            }
+
+        } catch (err) {
+            console.log(`❌ ${provider.name} failed:`, err.message);
+            continue;
+        }
+    }
+
+    throw new Error('All AI services are currently unavailable');
 };
 
 module.exports = {
     name: 'ai',
-    aliases: ['ia', 'ask', 'chat', 'gpt', 'llm'],
-    description: 'Intelligence Artificielle avec fallback automatique',
+    aliases: ['ia', 'ask', 'chat', 'gpt', 'llm', 'assistant'],
+    description: 'AI Assistant with automatic fallback',
 
     async execute({ sock, msg, args, jid, text, config, stats }) {
         const from = jid || msg?.key?.remoteJid;
 
         if (!from) {
-            console.error('❌ JID non disponible');
+            console.error('❌ JID not available');
             return;
         }
 
         // =========================
-        // 📋 AFFICHER LA LISTE DES IA
+        // 📋 SHOW AI LIST
         // =========================
         if (args.length === 0 || args[0].toLowerCase() === 'list') {
             if (msg?.key) {
@@ -163,18 +243,23 @@ module.exports = {
                 });
             }
 
-            const listMessage = `╭━━━━❲ *ARTIFICIAL INTELLIGENCE* ❳━━━━╮
+            const listMessage = `╭━━━━❲ *AI ASSISTANTS* ❳━━━━╮
 ┃
-${getAIList()}
+┃  🤖 *Available models :*
 ┃
+${getProviderList()}
+┃
+┃  📌 *Usage :*
 ┃  • .ai [question]
 ┃  • .ai [id] [question]
 ┃  • .ai list
 ┃
-┃  💡 *Exemple :*
-┃  .ai Hi !
-┃  .ai 1 What is IA ?
-┃  .ai 3 Explain me ...
+┃  💡 *Examples :*
+┃  .ai What is AI?
+┃  .ai 1 Tell me a joke
+┃  .ai 3 Explain quantum physics
+┃
+┃  ⚠️ *No API key required*
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
@@ -197,12 +282,11 @@ _©CybernovA_`;
         }
 
         // =========================
-        // 🔍 DÉTECTION DE L'IA SÉLECTIONNÉE
+        // 🔍 DETECT SELECTED AI
         // =========================
         let selectedId = null;
         let prompt = '';
 
-        // Vérifier si le premier argument est un numéro
         if (!isNaN(args[0]) && args[0] >= 1 && args[0] <= AI_PROVIDERS.length) {
             selectedId = parseInt(args[0]);
             prompt = args.slice(1).join(' ');
@@ -217,7 +301,7 @@ _©CybernovA_`;
                 });
             }
             return sock.sendMessage(from, {
-                text: `❌ *No question*\n .ia [id] [question]\n\n*Exemple :*\n.ia Hello !\n.ia 1 hi\n.ia list\n━━━━━━━━━━━━━━━\n_©CybernovA_`
+                text: `❌ *Question missing*\n\nUsage : .ai [question]\n\n*Examples :*\n.ai What is AI?\n.ai 1 Tell me a joke\n.ai list → View all AIs\n\n━━━━━━━━━━━━━━━\n_©CybernovA_`
             }, { quoted: msg });
         }
 
@@ -228,100 +312,38 @@ _©CybernovA_`;
         }
 
         await sock.sendMessage(from, {
-            text: '🤖 Wait...'
+            text: '🤖 *Generating response...*\n\n_This may take a few seconds._'
         }, { quoted: msg });
 
         // =========================
-        // 🔄 FALLBACK AUTOMATIQUE
+        // 🔄 ASK AI WITH FALLBACK
         // =========================
-        let response = null;
-        let usedProvider = null;
-        let errorLog = [];
-
-        // Filtrer les providers
-        let providersToTry = AI_PROVIDERS;
-
-        // Si un ID est sélectionné, ne garder que celui-ci en premier
-        if (selectedId) {
-            const selected = AI_PROVIDERS.find(p => p.id === selectedId);
-            if (selected) {
-                providersToTry = [selected, ...AI_PROVIDERS.filter(p => p.id !== selectedId)];
-            }
-        }
-
-        for (const provider of providersToTry) {
-            try {
-                console.log(`🔄 Tentative avec ${provider.name}...`);
-
-                const config = provider.format(prompt);
-                let responseData;
-
-                if (provider.method === 'GET') {
-                    const res = await axios.get(provider.endpoint, {
-                        params: config.params || {},
-                        timeout: provider.timeout || 30000,
-                        headers: {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                        }
-                    });
-                    responseData = res.data;
-                } else {
-                    const res = await axios.post(provider.endpoint, config.data || {}, {
-                        headers: config.headers || {
-                            'Content-Type': 'application/json'
-                        },
-                        timeout: provider.timeout || 30000
-                    });
-                    responseData = res.data;
-                }
-
-                const parsed = provider.parse(responseData);
-                if (parsed && typeof parsed === 'string' && parsed.trim().length > 0) {
-                    response = parsed;
-                    usedProvider = provider;
-                    break;
-                } else {
-                    errorLog.push(`${provider.name}: Réponse vide`);
-                }
-
-            } catch (err) {
-                console.log(`❌ Échec ${provider.name}:`, err.message);
-                errorLog.push(`${provider.name}: ${err.message}`);
-                continue;
-            }
-        }
-
-        // =========================
-        // 📤 ENVOI DE LA RÉPONSE
-        // =========================
-        if (response) {
+        try {
+            const result = await askAI(prompt, selectedId);
+            
             if (msg?.key) {
                 await sock.sendMessage(from, {
                     react: { text: '✅', key: msg.key }
                 });
             }
 
-            // Tronquer la réponse si trop longue
-            const maxLength = 100000;
-            let finalResponse = response;
-            if (finalResponse.length > maxLength) {
-                finalResponse = finalResponse.substring(0, maxLength) + '...\n\n_(Réponse tronquée)_';
+            // Truncate if too long
+            const maxLength = 4000;
+            let response = result.response;
+            if (response.length > maxLength) {
+                response = response.substring(0, maxLength) + '...\n\n_(Response truncated)_';
             }
 
-            const providerInfo = usedProvider ? 
-                `📡  ${usedProvider.name}${usedProvider.requiresKey ? ' 🔑' : ' ✨'}` : 
-                '';
-
-            const responseMessage = `╭━━━━❲ *RÉPONSE IA* ❳━━━━╮
+            const responseMessage = `╭━━━━❲ *AI RESPONSE* ❳━━━━╮
 ┃
 ┃  🤖 *Question :*
 ┃  ${prompt.substring(0, 100)}${prompt.length > 100 ? '...' : ''}
 ┃
-┃  ✨ *Réponse :*
-┃  ${finalResponse}
+┃  ✨ *Answer :*
+┃  ${response}
 ┃
-┃  ${providerInfo}
-┃  ⏱️ *Temps :* ${new Date().toLocaleTimeString()}
+┃  📡 *Source :* ${result.provider}
+┃  ⏱️ *Time :* ${new Date().toLocaleTimeString()}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
@@ -337,31 +359,33 @@ _©CybernovA_`;
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363425394543602@newsletter',
                         newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                        serverMessageId: 202
+                        serverMessageId: 195
                     }
                 }
             }, { quoted: msg });
 
-        } else {
-            // =========================
-            // ❌ ÉCHEC DE TOUTES LES IA
-            // =========================
+        } catch (error) {
+            console.error('❌ AI Error:', error);
+
             if (msg?.key) {
                 await sock.sendMessage(from, {
                     react: { text: '💥', key: msg.key }
                 });
             }
 
-            const errorMessage = `╭━━━━❲ *ERROR IA* ❳━━━━╮
+            const errorMessage = `╭━━━━❲ *AI ERROR* ❳━━━━╮
 ┃
-┃  ❌ *IA unavailable *
+┃  ❌ *All AI services are*
+┃  *temporarily unavailable*
 ┃
-┃  📝 *Error :*
-${errorLog.slice(0, 10).map(e => `┃  • ${e}`).join('\n')}
+┃  📝 *Error :* ${error.message}
 ┃
-┃  • Retry later .
-┃  • Use .ia list 
-┃    ex: .ia 1 [question]
+┃  💡 *Solutions :*
+┃  • Try again in a few minutes
+┃  • Use .ai list to see
+┃    available services
+┃  • Try with a specific ID
+┃    ex: .ai 1 [question]
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 

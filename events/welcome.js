@@ -32,9 +32,9 @@ const welcomeImages = [
     'https://files.catbox.moe/jcf2qc.jpg',
     'https://files.catbox.moe/tz07yl.jpg',
     'https://iili.io/BsJvF7R.jpg',
-    'https://o.uguu.se/XPtWQyPa.mp4',
-    'https://o.uguu.se/AlRGXkPp.mp4',
     'https://d.uguu.se/Kkpvxtht.mp4',
+    'https://o.uguu.se/AlRGXkPp.mp4',
+    'https://d.uguu.se/HutKqSjZ.mp4',
     'https://iili.io/BsJUPjV.jpg',
     'https://iili.io/BsdTfqJ.jpg',
     'https://iili.io/Bsd7U0u.jpg',
@@ -67,182 +67,192 @@ const getMediaType = (url) => {
 // 🔒 Anti-spam : cache des derniers messages envoyés
 const lastWelcomeSent = new Map();
 
-module.exports = (sock, config) => {
-    const PREFIX = config?.prefix || '.';
+// =========================
+// 🎉 EVENT WELCOME
+// =========================
+const welcomeEvent = async (sock, update) => {
+    try {
+        const { id, participants, action } = update;
 
-    // =========================
-    // 🎉 EVENT WELCOME
-    // =========================
-    sock.ev.on('group-participants.update', async (update) => {
-        try {
-            const { id, participants, action } = update;
+        if (!id || !participants || !action) return;
 
-            if (!id || !participants || !action) return;
+        const db = getWelcome();
 
-            const db = getWelcome();
+        // ✅ Par défaut ON (si non défini)
+        if (db[id] === false) return;
 
-            // ✅ Par défaut ON (si non défini)
-            if (db[id] === false) return;
+        if (action === 'add') {
+            // Anti-spam: attendre un peu pour éviter les erreurs
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            if (action === 'add') {
-                // Anti-spam: attendre un peu pour éviter les erreurs
-                await new Promise(resolve => setTimeout(resolve, 1500));
+            const metadata = await sock.groupMetadata(id).catch(() => null);
+            if (!metadata) return;
 
-                const metadata = await sock.groupMetadata(id).catch(() => null);
-                if (!metadata) return;
+            const groupName = metadata.subject || 'Groupe';
+            const members = metadata.participants.length;
 
-                const groupName = metadata.subject || 'Groupe';
-                const members = metadata.participants.length;
+            for (let user of participants) {
+                const jid = typeof user === 'string' ? user : user.id;
+                if (!jid) continue;
 
-                for (let user of participants) {
-                    const jid = typeof user === 'string' ? user : user.id;
-                    if (!jid) continue;
-
-                    // 🔒 Anti-spam : éviter les doublons
-                    const cacheKey = `${id}_${jid}`;
-                    if (lastWelcomeSent.has(cacheKey)) {
-                        const lastTime = lastWelcomeSent.get(cacheKey);
-                        if (Date.now() - lastTime < 60000) { // 1 minute
-                            continue;
-                        }
+                // 🔒 Anti-spam : éviter les doublons
+                const cacheKey = `${id}_${jid}`;
+                if (lastWelcomeSent.has(cacheKey)) {
+                    const lastTime = lastWelcomeSent.get(cacheKey);
+                    if (Date.now() - lastTime < 60000) { // 1 minute
+                        continue;
                     }
-                    lastWelcomeSent.set(cacheKey, Date.now());
+                }
+                lastWelcomeSent.set(cacheKey, Date.now());
 
-                    // 🎲 Choisir média aléatoire
-                    const randomMedia = getRandomImage();
-                    const mediaType = getMediaType(randomMedia);
+                // 🎲 Choisir média aléatoire
+                const randomMedia = getRandomImage();
+                const mediaType = getMediaType(randomMedia);
 
-                    // Préparer le message
-                    const messageContent = {
-                        caption: `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢
+                // Préparer le message
+                const messageContent = {
+                    caption: `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢
 *🅆🄴🄻🄲🄾🄼🄴 ✮* @${jid.split('@')[0]} to ${groupName} !
 We are ${members} members now ☕︎.
 яєѕρє¢т αℓℓ α∂мιиѕ ⚡︎.
 Desc: ${groupName}
 
-⚝ © 𝙋𝙤𝙬𝙚𝙧𝙚𝙙 𝙗𝙮 𝙘𝙮𝙗𝙚𝙧𝙣𝙤𝙫𝘼
+© 𝙋𝙤𝙬𝙚𝙧𝙚𝙙 𝙗𝙮 𝙘𝙮𝙗𝙚𝙧𝙣𝙤𝙫𝘼
 *https://whatsapp.com/channel/0029Vb8BKWwH5JLxq1ef1R43*`,
-                        contextInfo: {
-                            mentionedJid: [jid],
-                            forwardingScore: 540,
-                            isForwarded: true,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363425394543602@newsletter',
-                                newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                                serverMessageId: 202
-                            }
+                    contextInfo: {
+                        mentionedJid: [jid],
+                        forwardingScore: 540,
+                        isForwarded: true,
+                        forwardedNewsletterMessageInfo: {
+                            newsletterJid: '120363425394543602@newsletter',
+                            newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                            serverMessageId: 202
                         }
-                    };
-
-                    // Ajouter le média selon le type
-                    if (mediaType === 'video') {
-                        messageContent.video = { url: randomMedia };
-                    } else {
-                        messageContent.image = { url: randomMedia };
                     }
+                };
 
-                    await sock.sendMessage(id, messageContent).catch(err => {
-                        console.error('❌ Erreur envoi welcome:', err.message);
-                    });
-
-                    // ⚡ Anti-spam entre les membres
-                    await new Promise(res => setTimeout(res, 2000));
+                // Ajouter le média selon le type
+                if (mediaType === 'video') {
+                    messageContent.video = { url: randomMedia };
+                } else {
+                    messageContent.image = { url: randomMedia };
                 }
-            }
 
-            // Nettoyer le cache périodiquement
-            if (action === 'add' && participants.length > 0) {
-                setTimeout(() => {
-                    for (const user of participants) {
-                        const jid = typeof user === 'string' ? user : user.id;
-                        if (jid) {
-                            const cacheKey = `${id}_${jid}`;
-                            lastWelcomeSent.delete(cacheKey);
-                        }
-                    }
-                }, 300000); // 5 minutes
-            }
+                await sock.sendMessage(id, messageContent).catch(err => {
+                    console.error('❌ Erreur envoi welcome:', err.message);
+                });
 
-        } catch (err) {
-            console.error('❌ Erreur welcome:', err.message || err);
+                // ⚡ Anti-spam entre les membres
+                await new Promise(res => setTimeout(res, 2000));
+            }
         }
-    });
 
-    // =========================
-    // ⚙️ COMMANDE welcome
-    // =========================
-    sock.ev.on('messages.upsert', async (m) => {
-        try {
-            const msg = m.messages[0];
-            if (!msg.message || msg.key.fromMe) return;
+        // Nettoyer le cache périodiquement
+        if (action === 'add' && participants.length > 0) {
+            setTimeout(() => {
+                for (const user of participants) {
+                    const jid = typeof user === 'string' ? user : user.id;
+                    if (jid) {
+                        const cacheKey = `${id}_${jid}`;
+                        lastWelcomeSent.delete(cacheKey);
+                    }
+                }
+            }, 300000); // 5 minutes
+        }
 
-            const from = msg.key.remoteJid;
+    } catch (err) {
+        console.error('❌ Erreur welcome:', err.message || err);
+    }
+};
 
-            // Seulement groupe
-            if (!from.endsWith('@g.us')) return;
+// =========================
+// ⚙️ COMMANDE WELCOME
+// =========================
+const welcomeCommand = async (sock, msg) => {
+    try {
+        const from = msg.key.remoteJid;
 
-            const body =
-                msg.message.conversation ||
-                msg.message.extendedTextMessage?.text ||
-                msg.message.imageMessage?.caption ||
-                '';
+        // Seulement groupe
+        if (!from.endsWith('@g.us')) return;
 
-            if (!body) return;
+        const body =
+            msg.message.conversation ||
+            msg.message.extendedTextMessage?.text ||
+            msg.message.imageMessage?.caption ||
+            '';
 
-            // ✅ Support des DEUX préfixes
-            const hasPrefix = body.startsWith(PREFIX) || body.startsWith('+');
-            if (!hasPrefix) return;
+        if (!body) return;
 
-            // Extraire la commande sans le préfixe
-            let commandText = body;
-            if (body.startsWith(PREFIX)) {
-                commandText = body.slice(PREFIX.length).trim();
-            } else if (body.startsWith('+')) {
-                commandText = body.slice(1).trim();
-            }
+        // ✅ Support des DEUX préfixes
+        const PREFIX = global.PREFIX || '.';
+        const hasPrefix = body.startsWith(PREFIX) || body.startsWith('+');
+        if (!hasPrefix) return;
 
-            // Vérifier si c'est la commande welcome
-            if (!commandText.toLowerCase().startsWith('welcome')) return;
+        // Extraire la commande sans le préfixe
+        let commandText = body;
+        if (body.startsWith(PREFIX)) {
+            commandText = body.slice(PREFIX.length).trim();
+        } else if (body.startsWith('+')) {
+            commandText = body.slice(1).trim();
+        }
 
-            const args = commandText.split(/\s+/);
-            const option = args[1]?.toLowerCase();
+        // Vérifier si c'est la commande welcome
+        if (!commandText.toLowerCase().startsWith('welcome')) return;
 
-            const db = getWelcome();
+        const args = commandText.split(/\s+/);
+        const option = args[1]?.toLowerCase();
 
-            // Activer/Désactiver welcome
-            if (option === 'on') {
-                db[from] = true;
-                saveWelcome(db);
-                return sock.sendMessage(from, {
-                    text: '✅ *Welcome enable* for this group'
-                }, { quoted: msg });
-            }
+        const db = getWelcome();
 
-            if (option === 'off') {
-                db[from] = false;
-                saveWelcome(db);
-                return sock.sendMessage(from, {
-                    text: '❌ *Welcome désactivé* dans ce groupe.'
-                }, { quoted: msg });
-            }
+        // Activer/Désactiver welcome
+        if (option === 'on') {
+            db[from] = true;
+            saveWelcome(db);
+            return sock.sendMessage(from, {
+                text: '✅ *Welcome Enable* in this group''
+            }, { quoted: msg });
+        }
 
-            // Afficher le statut
-            const status = db[from] === false ? '❌ OFF' : '✅ ON';
-            await sock.sendMessage(from, {
-                text: `╭━━━━❲ *WELCOME STATUS* ❳━━━━╮
+        if (option === 'off') {
+            db[from] = false;
+            saveWelcome(db);
+            return sock.sendMessage(from, {
+                text: '❌ *Welcome disable* in this group''
+            }, { quoted: msg });
+        }
+
+        // Afficher le statut
+        const status = db[from] === false ? '❌ OFF' : '✅ ON';
+        await sock.sendMessage(from, {
+            text: `╭━━━━❲ *WELCOME STATUS* ❳━━━━╮
 ┃
-┃  ⚙️ *Statut :* ${status}
+┃  ⚙️ *Status :* ${status}
 ┃
 ┃  ${PREFIX}welcome on  → Enable
 ┃  ${PREFIX}welcome off → Disable
-┃  +welcome on          → enable
-┃  +welcome off         → disable 
+┃  +welcome on          → Enable
+┃  +welcome off         → Disable
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
-            }, { quoted: msg });
+        }, { quoted: msg });
 
-        } catch (err) {
-            console.error('❌ Erreur commande welcome:', err.message || err);
-        }
-    });
+    } catch (err) {
+        console.error('❌ Erreur commande welcome:', err.message || err);
+    }
+};
+
+// =========================
+// 📤 EXPORT POUR LE CHARGEUR D'EVENTS
+// =========================
+module.exports = {
+    event: 'group-participants.update',
+    execute: welcomeEvent
+};
+
+// =========================
+// 📤 EXPORT POUR LA COMMANDE (optionnel)
+// =========================
+module.exports.command = {
+    name: 'welcome',
+    execute: welcomeCommand
 };

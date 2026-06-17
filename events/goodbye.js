@@ -30,58 +30,55 @@ const saveGoodbye = (data) => {
 // 🔒 Anti-spam : cache des derniers messages envoyés
 const lastGoodbyeSent = new Map();
 
-module.exports = (sock, config) => {
-    const PREFIX = config?.prefix || '.';
+// =========================
+// 👋 EVENT GOODBYE
+// =========================
+const goodbyeEvent = async (sock, update) => {
+    try {
+        const { id, participants, action } = update;
 
-    // =========================
-    // 👋 EVENT GOODBYE
-    // =========================
-    sock.ev.on('group-participants.update', async (update) => {
-        try {
-            const { id, participants, action } = update;
+        if (!id || !participants) return;
 
-            if (!id || !participants) return;
+        const db = getGoodbye();
 
-            const db = getGoodbye();
+        // ✅ ON PAR DÉFAUT
+        if (db[id] === false) return;
 
-            // ✅ ON PAR DÉFAUT
-            if (db[id] === false) return;
+        if (action === 'remove') {
+            // Anti-spam: attendre un peu
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            if (action === 'remove') {
-                // Anti-spam: attendre un peu
-                await new Promise(resolve => setTimeout(resolve, 1500));
+            const metadata = await sock.groupMetadata(id).catch(() => null);
+            if (!metadata) return;
 
-                const metadata = await sock.groupMetadata(id).catch(() => null);
-                if (!metadata) return;
+            const groupName = metadata.subject || 'Groupe';
+            const members = metadata.participants.length;
 
-                const groupName = metadata.subject || 'Groupe';
-                const members = metadata.participants.length;
+            for (let user of participants) {
+                const jid = typeof user === 'string' ? user : user.id;
+                if (!jid) continue;
 
-                for (let user of participants) {
-                    const jid = typeof user === 'string' ? user : user.id;
-                    if (!jid) continue;
-
-                    // 🔒 Anti-spam : éviter les doublons
-                    const cacheKey = `${id}_${jid}`;
-                    if (lastGoodbyeSent.has(cacheKey)) {
-                        const lastTime = lastGoodbyeSent.get(cacheKey);
-                        if (Date.now() - lastTime < 60000) { // 1 minute
-                            continue;
-                        }
+                // 🔒 Anti-spam : éviter les doublons
+                const cacheKey = `${id}_${jid}`;
+                if (lastGoodbyeSent.has(cacheKey)) {
+                    const lastTime = lastGoodbyeSent.get(cacheKey);
+                    if (Date.now() - lastTime < 60000) { // 1 minute
+                        continue;
                     }
-                    lastGoodbyeSent.set(cacheKey, Date.now());
+                }
+                lastGoodbyeSent.set(cacheKey, Date.now());
 
-                    // 📸 récupérer photo profil
-                    let pp;
-                    try {
-                        pp = await sock.profilePictureUrl(jid, 'image');
-                    } catch {
-                        pp = 'https://iili.io/BQeNq0b.jpg';
-                    }
+                // 📸 récupérer photo profil
+                let pp;
+                try {
+                    pp = await sock.profilePictureUrl(jid, 'image');
+                } catch {
+                    pp = 'https://iili.io/BQeNq0b.jpg';
+                }
 
-                    await sock.sendMessage(id, {
-                        image: { url: pp },
-                        caption: `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢
+                await sock.sendMessage(id, {
+                    image: { url: pp },
+                    caption: `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢
 𝙶𝚘𝚘𝚍𝚋𝚢𝚎 🫂 @${jid.split('@')[0]} !☹
 
 ➟ *Group* ${groupName}
@@ -90,97 +87,95 @@ module.exports = (sock, config) => {
 
 𝙒𝙚 𝙬𝙞𝙡𝙡 𝙢𝙞𝙨𝙨 𝙮𝙤𝙪 🥀
 *https://whatsapp.com/channel/0029Vb8BKWwH5JLxq1ef1R43*`,
-                        contextInfo: {
-                            mentionedJid: [jid],
-                            forwardingScore: 240,
-                            isForwarded: true,
-                            forwardedNewsletterMessageInfo: {
-                                newsletterJid: '120363425394543602@newsletter',
-                                newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                                serverMessageId: 193
-                            }
-                        }
-                    });
-
-                    // ⚡ anti-spam entre les membres
-                    await new Promise(res => setTimeout(res, 2000));
-                }
-
-                // Nettoyer le cache périodiquement
-                setTimeout(() => {
-                    for (const user of participants) {
-                        const jid = typeof user === 'string' ? user : user.id;
-                        if (jid) {
-                            const cacheKey = `${id}_${jid}`;
-                            lastGoodbyeSent.delete(cacheKey);
+                    contextInfo: {
+                        mentionedJid: [jid],
+                        forwardingScore: 240,
+                        isForwarded: true,
+                        forwardedNewsletterMessageInfo: {
+                            newsletterJid: '120363425394543602@newsletter',
+                            newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                            serverMessageId: 202
                         }
                     }
-                }, 300000); // 5 minutes
+                });
+
+                // ⚡ anti-spam entre les membres
+                await new Promise(res => setTimeout(res, 2000));
             }
 
-        } catch (err) {
-            console.log('❌ Erreur goodbye:', err);
+            // Nettoyer le cache périodiquement
+            setTimeout(() => {
+                for (const user of participants) {
+                    const jid = typeof user === 'string' ? user : user.id;
+                    if (jid) {
+                        const cacheKey = `${id}_${jid}`;
+                        lastGoodbyeSent.delete(cacheKey);
+                    }
+                }
+            }, 300000); // 5 minutes
         }
-    });
 
-    // =========================
-    // ⚙️ COMMANDE goodbye
-    // =========================
-    sock.ev.on('messages.upsert', async (m) => {
-        try {
-            const msg = m.messages[0];
-            if (!msg.message || msg.key.fromMe) return;
+    } catch (err) {
+        console.log('❌ Erreur goodbye:', err);
+    }
+};
 
-            const from = msg.key.remoteJid;
-            if (!from.endsWith('@g.us')) return;
+// =========================
+// ⚙️ COMMANDE GOODBYE
+// =========================
+const goodbyeCommand = async (sock, msg) => {
+    try {
+        const from = msg.key.remoteJid;
+        if (!from.endsWith('@g.us')) return;
 
-            const body =
-                msg.message.conversation ||
-                msg.message.extendedTextMessage?.text ||
-                '';
+        const body =
+            msg.message.conversation ||
+            msg.message.extendedTextMessage?.text ||
+            '';
 
-            if (!body) return;
+        if (!body) return;
 
-            // ✅ Support des DEUX préfixes
-            const hasPrefix = body.startsWith(PREFIX) || body.startsWith('+');
-            if (!hasPrefix) return;
+        // ✅ Support des DEUX préfixes
+        const PREFIX = global.PREFIX || '.';
+        const hasPrefix = body.startsWith(PREFIX) || body.startsWith('+');
+        if (!hasPrefix) return;
 
-            // Extraire la commande sans le préfixe
-            let commandText = body;
-            if (body.startsWith(PREFIX)) {
-                commandText = body.slice(PREFIX.length).trim();
-            } else if (body.startsWith('+')) {
-                commandText = body.slice(1).trim();
-            }
+        // Extraire la commande sans le préfixe
+        let commandText = body;
+        if (body.startsWith(PREFIX)) {
+            commandText = body.slice(PREFIX.length).trim();
+        } else if (body.startsWith('+')) {
+            commandText = body.slice(1).trim();
+        }
 
-            // Vérifier si c'est la commande goodbye
-            if (!commandText.toLowerCase().startsWith('goodbye')) return;
+        // Vérifier si c'est la commande goodbye
+        if (!commandText.toLowerCase().startsWith('goodbye')) return;
 
-            const args = commandText.split(/\s+/);
-            const option = args[1]?.toLowerCase();
+        const args = commandText.split(/\s+/);
+        const option = args[1]?.toLowerCase();
 
-            const db = getGoodbye();
+        const db = getGoodbye();
 
-            if (option === 'off') {
-                db[from] = false;
-                saveGoodbye(db);
-                return sock.sendMessage(from, {
-                    text: '❌ *Goodbye disable* on this group.'
-                }, { quoted: msg });
-            }
+        if (option === 'off') {
+            db[from] = false;
+            saveGoodbye(db);
+            return sock.sendMessage(from, {
+                text: '❌ *Goodbye disable* in this group'
+            }, { quoted: msg });
+        }
 
-            if (option === 'on') {
-                db[from] = true;
-                saveGoodbye(db);
-                return sock.sendMessage(from, {
-                    text: '✅ *Goodbye enable* on this group.'
-                }, { quoted: msg });
-            }
+        if (option === 'on') {
+            db[from] = true;
+            saveGoodbye(db);
+            return sock.sendMessage(from, {
+                text: '✅ *Goodbye Enable* in this group''
+            }, { quoted: msg });
+        }
 
-            const status = db[from] === false ? '❌ OFF' : '✅ ON';
+        const status = db[from] === false ? '❌ OFF' : '✅ ON';
 
-            await sock.sendMessage(from, {
-                text: `╭━━━━❲ *GOODBYE STATUS* ❳━━━━╮
+        await sock.sendMessage(from, {
+            text: `╭━━━━❲ *GOODBYE STATUS* ❳━━━━╮
 ┃
 ┃  ⚙️ *Statut :* ${status}
 ┃
@@ -190,10 +185,25 @@ module.exports = (sock, config) => {
 ┃  +goodbye off         → Disable
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
-            }, { quoted: msg });
+        }, { quoted: msg });
 
-        } catch (err) {
-            console.log('❌ Erreur commande goodbye:', err);
-        }
-    });
+    } catch (err) {
+        console.log('❌ Erreur commande goodbye:', err);
+    }
+};
+
+// =========================
+// 📤 EXPORT POUR LE CHARGEUR D'EVENTS
+// =========================
+module.exports = {
+    event: 'group-participants.update',
+    execute: goodbyeEvent
+};
+
+// =========================
+// 📤 EXPORT POUR LA COMMANDE (optionnel)
+// =========================
+module.exports.command = {
+    name: 'goodbye',
+    execute: goodbyeCommand
 };
