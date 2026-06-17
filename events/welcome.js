@@ -114,7 +114,7 @@ const welcomeEvent = async (sock, update) => {
                     caption: `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢
 *🅆🄴🄻🄲🄾🄼🄴 ✮* @${jid.split('@')[0]} to ${groupName} !
 We are ${members} members now ☕︎.
-яєѕρє¢т αℓℓ α∂мιиѕ ⚡︎.
+*Respect all admins and follow our channel* ⚡︎.
 Desc: ${groupName}
 
 © 𝙋𝙤𝙬𝙚𝙧𝙚𝙙 𝙗𝙮 𝙘𝙮𝙗𝙚𝙧𝙣𝙤𝙫𝘼
@@ -228,10 +228,10 @@ const welcomeCommand = async (sock, msg) => {
 ┃
 ┃  ⚙️ *Status :* ${status}
 ┃
-┃  ${PREFIX}welcome on  → Enable
-┃  ${PREFIX}welcome off → Disable
-┃  +welcome on          → Enable
-┃  +welcome off         → Disable
+┃  ${PREFIX}welcome on  = Enable
+┃  ${PREFIX}welcome off = Disable
+┃  +welcome on          = Enable
+┃  +welcome off         = Disable
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
         }, { quoted: msg });

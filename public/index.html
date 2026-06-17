@@ -1,39 +1,85 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZENITSU BOT PRO - Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             min-height: 100vh;
             color: #fff;
         }
-        
+
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 30px;
             box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
         }
-        
-        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
-        .header .subtitle { opacity: 0.9; font-size: 1.1em; }
-        
+
+        .header-left h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header-left .subtitle {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-whatsapp {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-whatsapp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4);
+        }
+
+        .btn-whatsapp svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-        
+
         .stat-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -42,12 +88,12 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: transform 0.3s, box-shadow 0.3s;
         }
-        
+
         .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
         }
-        
+
         .stat-value {
             font-size: 2.5em;
             font-weight: bold;
@@ -55,7 +101,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .stat-label {
             color: #a0aec0;
             margin-top: 10px;
@@ -63,13 +109,13 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .main-content {
             display: grid;
             grid-template-columns: 400px 1fr;
             gap: 30px;
         }
-        
+
         .control-panel {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -78,7 +124,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             height: fit-content;
         }
-        
+
         .panel {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -86,17 +132,17 @@
             padding: 25px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .panel h2, .control-panel h2 {
             margin-bottom: 20px;
             color: #667eea;
             font-size: 1.5em;
         }
-        
+
         .form-group {
             margin-bottom: 20px;
         }
-        
+
         .form-group label {
             display: block;
             margin-bottom: 8px;
@@ -106,7 +152,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .form-group input {
             width: 100%;
             padding: 12px 15px;
@@ -117,17 +163,17 @@
             font-size: 16px;
             transition: all 0.3s;
         }
-        
+
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .form-group input::placeholder {
             color: rgba(255, 255, 255, 0.4);
         }
-        
+
         .btn {
             width: 100%;
             padding: 14px;
@@ -141,27 +187,33 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .btn-connect {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
         }
-        
+
         .btn-connect:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
-        
+
+        .btn-connect:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-refresh {
             background: rgba(255, 255, 255, 0.1);
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .btn-refresh:hover {
             background: rgba(255, 255, 255, 0.2);
         }
-        
+
         .info-box {
             background: rgba(102, 126, 234, 0.1);
             border-left: 4px solid #667eea;
@@ -171,13 +223,13 @@
             font-size: 0.9em;
             line-height: 1.6;
         }
-        
+
         .subbot-list {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-        
+
         .subbot-card {
             background: rgba(255, 255, 255, 0.08);
             border-radius: 12px;
@@ -185,71 +237,79 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s;
         }
-        
+
         .subbot-card:hover {
             background: rgba(255, 255, 255, 0.12);
             border-color: #667eea;
         }
-        
+
         .subbot-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        
+
         .subbot-number {
             font-size: 1.2em;
             font-weight: bold;
         }
-        
+
         .status-badge {
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: 600;
         }
-        
+
         .status-connected {
             background: rgba(72, 187, 120, 0.2);
             color: #48bb78;
             border: 1px solid #48bb78;
         }
-        
+
         .status-qr {
             background: rgba(246, 173, 85, 0.2);
             color: #f6ad55;
             border: 1px solid #f6ad55;
         }
-        
+
         .status-disconnected {
             background: rgba(245, 101, 101, 0.2);
             color: #f56565;
             border: 1px solid #f56565;
         }
-        
+
+        .status-connecting {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            border: 1px solid #667eea;
+        }
+
         .subbot-actions {
             display: flex;
             gap: 10px;
         }
-        
+
         .btn-sm {
             flex: 1;
             padding: 10px;
             font-size: 13px;
             margin-bottom: 0;
         }
-        
+
         .btn-restart {
             background: linear-gradient(135deg, #ed8936, #dd6b20);
             color: white;
         }
-        
-        .btn-disconnect {
-            background: linear-gradient(135deg, #fc8181, #f56565);
-            color: white;
+
+        .btn-restart:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(237, 137, 54, 0.3);
         }
-        
+
         .qr-container {
             margin-top: 15px;
             text-align: center;
@@ -257,11 +317,11 @@
             padding: 15px;
             border-radius: 10px;
         }
-        
+
         .qr-container img {
             max-width: 200px;
         }
-        
+
         .qr-code-text {
             font-size: 1.5em;
             font-weight: bold;
@@ -269,60 +329,189 @@
             letter-spacing: 3px;
             margin-top: 10px;
         }
-        
+
+        .pair-code-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pair-code-container .code-title {
+            color: #333;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .pair-code-container .code-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .pair-code-container .code-info {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .pair-code-container .code-expiry {
+            color: #999;
+            font-size: 0.8em;
+            margin-top: 8px;
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .btn-copy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-copy.copied {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
         .logs {
-            max-height: 500px;
+            max-height: 300px;
             overflow-y: auto;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
             padding: 20px;
             margin-top: 20px;
         }
-        
-        .log-entry {
-            padding: 10px;
-            border-left: 3px solid #667eea;
-            margin-bottom: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85em;
+
+        .logs::-webkit-scrollbar {
+            width: 6px;
         }
-        
+
+        .logs::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .logs::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .log-entry {
+            padding: 8px 12px;
+            border-left: 3px solid #667eea;
+            margin-bottom: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82em;
+            word-break: break-word;
+        }
+
         .log-entry.error { border-left-color: #f56565; color: #fc8181; }
         .log-entry.success { border-left-color: #48bb78; color: #68d391; }
         .log-entry.warning { border-left-color: #ed8936; color: #f6ad55; }
-        
+
         .log-time {
             color: #a0aec0;
             font-size: 0.8em;
+            margin-right: 8px;
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 40px;
             color: #a0aec0;
         }
-        
+
         .empty-state .icon {
             font-size: 3em;
             margin-bottom: 15px;
         }
-        
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 9999;
+            animation: slideUp 0.5s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .toast.success { background: #48bb78; }
+        .toast.error { background: #f56565; }
+        .toast.info { background: #667eea; }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         @media (max-width: 768px) {
             .main-content { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
+            .header { flex-direction: column; text-align: center; }
+            .header-right { width: 100%; justify-content: center; }
+            .pair-code-container .code-value { font-size: 1.8em; letter-spacing: 4px; }
+            .subbot-header { flex-direction: column; align-items: flex-start; }
+            .subbot-actions { width: 100%; }
+            .btn-sm { flex: 1; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚡ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢 𝐏𝐫𝐨</h1>
-            <p class="subtitle">Dashboard</p>
+            <div class="header-left">
+                <h1>⚡ ZENITSU PRO</h1>
+                <p class="subtitle">WhatsApp Bot Dashboard</p>
+            </div>
+            <div class="header-right">
+                <a href="https://whatsapp.com/channel/0029Vb8BKWwH5JLxq1ef1R43" target="_blank" class="btn-whatsapp">
+                    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Channel
+                </a>
+            </div>
         </div>
-        
+
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value" id="uptime">0j 0h 0m</div>
+                <div class="stat-value" id="uptime">0d 0h 0m</div>
                 <div class="stat-label">⏱ Uptime</div>
             </div>
             <div class="stat-card">
@@ -335,71 +524,71 @@
             </div>
             <div class="stat-card">
                 <div class="stat-value" id="subbots">0/50</div>
-                <div class="stat-label">🤖 Subbots</div>
+                <div class="stat-label">🤖 Bots</div>
             </div>
         </div>
-        
+
         <div class="main-content">
             <div class="control-panel">
-                <h2>Connect </h2>
-                
+                <h2>🔌 Connect Bot</h2>
+
                 <div class="info-box">
-                    📱 <strong>How it work ?</strong><br>
+                    📱 <strong>How it works:</strong><br>
                     1. Enter your phone number<br>
-                    2. Click to "Connect"<br>
-                    3. The pair code will appear here<br>
+                    2. Click "Connect"<br>
+                    3. A pairing code will appear<br>
                     4. Enter the code in WhatsApp → Linked devices
                 </div>
-                
+
                 <div class="form-group">
-                    <label>📞 Phone number</label>
-                    <input 
-                        type="text" 
-                        id="phoneNumber" 
-                        placeholder="Exemple : +22960000000 or 22960000000"
+                    <label>📞 Phone Number</label>
+                    <input
+                        type="text"
+                        id="phoneNumber"
+                        placeholder="e.g. 22960000000"
                         autocomplete="off"
                     >
                 </div>
-                
-                <button class="btn btn-connect" onclick="connectSubbot()">
+
+                <button class="btn btn-connect" onclick="connectBot()" id="connectBtn">
                     🔗 Connect
                 </button>
-                
+
                 <button class="btn btn-refresh" onclick="refreshStats()">
                     🔄 Refresh
                 </button>
-                
-                <div id="pairCodeArea" style="margin-top: 20px;"></div>
-                
-                <div class="logs" style="margin-top: 20px; max-height: 300px;">
-                    <div style="color: #667eea; margin-bottom: 15px;">📋 Logs onLine</div>
+
+                <div id="pairCodeArea"></div>
+
+                <div class="logs" id="logsContainer">
+                    <div style="color: #667eea; margin-bottom: 15px; font-weight: 600;">📋 Live Logs</div>
                     <div id="logs">
                         <div class="log-entry">
-                            <span class="log-time">[System]</span> Dashboard initialised...
+                            <span class="log-time">[System]</span> Dashboard initialized...
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="panel">
                 <h2>🤖 Bots</h2>
                 <div class="subbot-list" id="subbotList">
                     <div class="empty-state">
                         <div class="icon">🤖</div>
-                        <p>No bot here</p>
-                        <p style="font-size: 0.9em; margin-top: 5px;">Use the form to connect a Bot</p>
+                        <p>No bots connected</p>
+                        <p style="font-size: 0.9em; margin-top: 5px;">Use the form to connect a bot</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         const subbots = new Map();
         let currentPairCode = null;
-        
+
         function addLog(message, type = 'info') {
             const logsDiv = document.getElementById('logs');
             const logEntry = document.createElement('div');
@@ -407,124 +596,122 @@
             const time = new Date().toLocaleTimeString();
             logEntry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
             logsDiv.insertBefore(logEntry, logsDiv.firstChild);
-            
+
             while (logsDiv.children.length > 100) {
                 logsDiv.removeChild(logsDiv.lastChild);
             }
         }
-        
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
         function updateStats(data) {
-            document.getElementById('uptime').textContent = data.uptime || '0j 0h 0m';
+            document.getElementById('uptime').textContent = data.uptime || '0d 0h 0m';
             document.getElementById('messages').textContent = data.messagesTotal || 0;
             document.getElementById('commands').textContent = data.commandsUsed || 0;
             document.getElementById('subbots').textContent = `${data.subBotsCount || 0}/50`;
         }
-        
-        function connectSubbot() {
+
+        function connectBot() {
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
-            
+
             if (!phoneNumber) {
-                addLog('❌ Please add a phone number', 'error');
-                alert('Add your phone number');
+                addLog('❌ Please enter a phone number', 'error');
+                showToast('Please enter a phone number', 'error');
                 return;
             }
-            
-            // Nettoyer le numéro
+
             const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
-            
+
             if (cleanNumber.length < 7 || cleanNumber.length > 15) {
-                addLog('❌ Invalid number', 'error');
-                alert('Phone number invalid (7-15 number)');
+                addLog('❌ Invalid phone number', 'error');
+                showToast('Invalid phone number (7-15 digits)', 'error');
                 return;
             }
-            
+
             if (subbots.has(cleanNumber)) {
-                addLog(`⚠️ Bot  ${cleanNumber} is already connected`, 'warning');
-                alert('This socket is already connected');
+                addLog(`⚠️ Bot ${cleanNumber} is already connected`, 'warning');
+                showToast(`Bot ${cleanNumber} is already connected`, 'warning');
                 return;
             }
-            
-            addLog(`Connecting ${cleanNumber}...`);
-            
-            // Envoyer la demande au serveur
-            socket.emit('connect_subbot', { 
+
+            addLog(`🔗 Connecting ${cleanNumber}...`);
+            showToast(`Connecting ${cleanNumber}...`, 'info');
+
+            socket.emit('connect_subbot', {
                 number: cleanNumber,
-                phoneNumber: phoneNumber 
+                phoneNumber: phoneNumber
             });
-            
-            // Désactiver le bouton temporairement
-            const btn = document.querySelector('.btn-connect');
+
+            const btn = document.getElementById('connectBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ Connexion...';
-            
+            btn.textContent = '⏳ Connecting...';
+
             setTimeout(() => {
                 btn.disabled = false;
-                btn.textContent = '🔗 Connect  : ';
-            }, 10000);
+                btn.textContent = '🔗 Connect';
+            }, 15000);
         }
-        
-        function restartSubbot(number) {
-            if (confirm(`Confirm to restart  ${number} `)) {
+
+        function restartBot(number) {
+            if (confirm(`Restart bot ${number}?`)) {
                 socket.emit('restart_subbot', { number });
                 addLog(`🔄 Restarting ${number}...`, 'warning');
+                showToast(`Restarting ${number}...`, 'info');
             }
         }
-        
-        function disconnectSubbot(number) {
-            if (confirm(`Do you want to disconnect ${number} ?`)) {
-                socket.emit('disconnect_subbot', { number });
-                addLog(`🗑️ Déconnexion ${number}...`, 'warning');
-                
-                // Supprimer la carte
-                const card = document.getElementById(`subbot-${number}`);
-                if (card) {
-                    card.style.opacity = '0.5';
-                    card.style.transform = 'scale(0.95)';
-                    setTimeout(() => card.remove(), 300);
-                }
-                
-                subbots.delete(number);
-                updateEmptyState();
-            }
+
+        function copyCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector('.btn-copy');
+                btn.textContent = '✅ Copied!';
+                btn.classList.add('copied');
+                showToast('Code copied to clipboard!', 'success');
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy Code';
+                    btn.classList.remove('copied');
+                }, 3000);
+            }).catch(() => {
+                showToast('Failed to copy code', 'error');
+            });
         }
-        
+
         function showPairCode(number, code) {
             const pairArea = document.getElementById('pairCodeArea');
             const formattedCode = code.match(/.{1,4}/g).join('-');
-            
+
             pairArea.innerHTML = `
-                <div style="background: white; padding: 20px; border-radius: 15px; text-align: center;">
-                    <div style="color: #333; margin-bottom: 15px; font-weight: bold;">
-                        🔑 CODE
-                    </div>
-                    <div style="font-size: 2em; font-weight: bold; color: #667eea; letter-spacing: 5px; margin: 15px 0;">
-                        ${formattedCode}
-                    </div>
-                    <div style="color: #666; font-size: 0.9em; margin-top: 15px;">
-                        📱 Number : +${number}<br>
-                        ⚡ Open WhatsApp → Linked devices → Link with phone number
-                    </div>
-                    <div style="margin-top: 10px; color: #999; font-size: 0.8em;">
-                        This code will disapear after 2 minutes
-                    </div>
+                <div class="pair-code-container">
+                    <div class="code-title">🔑 Pairing Code</div>
+                    <div class="code-value">${formattedCode}</div>
+                    <button class="btn-copy" onclick="copyCode('${formattedCode}')">📋 Copy Code</button>
+                    <div class="code-info">📱 Phone: +${number}</div>
+                    <div class="code-info">⚡ WhatsApp → Linked devices → Link with phone number</div>
+                    <div class="code-expiry">⏳ This code expires in 2 minutes</div>
                 </div>
             `;
-            
+
             currentPairCode = { number, code };
-            
-            // Faire défiler jusqu'au code
             pairArea.scrollIntoView({ behavior: 'smooth' });
         }
-        
+
         function updateSubbotCard(number, status, data = {}) {
             const listDiv = document.getElementById('subbotList');
-            
-            // Supprimer le message "aucun sous-bot"
+
             const emptyState = listDiv.querySelector('.empty-state');
             if (emptyState) emptyState.remove();
-            
+
             let card = document.getElementById(`subbot-${number}`);
-            
+
             if (!card) {
                 card = document.createElement('div');
                 card.className = 'subbot-card';
@@ -532,104 +719,88 @@
                 card.innerHTML = `
                     <div class="subbot-header">
                         <div class="subbot-number">📱 +${number}</div>
-                        <span class="status-badge" id="status-${number}">Connexion...</span>
+                        <span class="status-badge" id="status-${number}">Connecting...</span>
                     </div>
                     <div class="subbot-actions">
-                        <button class="btn btn-sm btn-restart" onclick="restartSubbot('${number}')">🔄 Restart</button>
-                        <button class="btn btn-sm btn-disconnect" onclick="disconnectSubbot('${number}')">✕ Disconnect</button>
+                        <button class="btn btn-sm btn-restart" onclick="restartBot('${number}')">🔄 Restart</button>
                     </div>
                     <div id="qr-${number}"></div>
                 `;
                 listDiv.appendChild(card);
             }
-            
+
             const statusBadge = document.getElementById(`status-${number}`);
             statusBadge.className = 'status-badge';
-            
-            switch(status) {
-                case 'connected':
-                    statusBadge.classList.add('status-connected');
-                    statusBadge.textContent = '🟢 Connected';
-                    break;
-                case 'qr':
-                    statusBadge.classList.add('status-qr');
-                    statusBadge.textContent = '📱 Waiting ...';
-                    break;
-                case 'connecting':
-                    statusBadge.classList.add('status-qr');
-                    statusBadge.textContent = '🟡 Connexion...';
-                    break;
-                case 'disconnected':
-                    statusBadge.classList.add('status-disconnected');
-                    statusBadge.textContent = '🔴 Disconnected';
-                    break;
-                default:
-                    statusBadge.classList.add('status-qr');
-                    statusBadge.textContent = '🟡 ' + status;
-            }
-            
-            // Afficher le QR si disponible
+
+            const statusMap = {
+                'connected': ['status-connected', '🟢 Connected'],
+                'qr': ['status-qr', '📱 Waiting for QR'],
+                'connecting': ['status-connecting', '🟡 Connecting...'],
+                'disconnected': ['status-disconnected', '🔴 Disconnected']
+            };
+
+            const [className, label] = statusMap[status] || ['status-qr', '🟡 ' + status];
+            statusBadge.classList.add(className);
+            statusBadge.textContent = label;
+
             if (data.qr) {
                 const qrDiv = document.getElementById(`qr-${number}`);
                 qrDiv.innerHTML = `
                     <div class="qr-container">
-                        <div style="color: #333; font-weight: bold; margin-bottom: 10px;">
-                            📱 Scan this qr
-                        </div>
+                        <div style="color: #333; font-weight: bold; margin-bottom: 10px;">📱 Scan QR Code</div>
                         <img src="${data.qr}" alt="QR Code">
                     </div>
                 `;
             }
-            
+
             subbots.set(number, { status, ...data });
+            updateStats({ subBotsCount: subbots.size });
         }
-        
+
         function updateEmptyState() {
             const listDiv = document.getElementById('subbotList');
             if (subbots.size === 0 && !listDiv.querySelector('.empty-state')) {
                 listDiv.innerHTML = `
                     <div class="empty-state">
                         <div class="icon">🤖</div>
-                        <p>No bot</p>
-                        <p style="font-size: 0.9em; margin-top: 5px;">Use the form to connect </p>
+                        <p>No bots connected</p>
+                        <p style="font-size: 0.9em; margin-top: 5px;">Use the form to connect a bot</p>
                     </div>
                 `;
             }
         }
-        
+
         function refreshStats() {
             fetch('/api/stats')
                 .then(res => res.json())
                 .then(data => {
                     updateStats(data);
-                    addLog('📊 updated stats ', 'success');
+                    addLog('📊 Stats refreshed', 'success');
                 })
                 .catch(() => {
-                    addLog('❌ Error while updating', 'error');
+                    addLog('❌ Failed to refresh stats', 'error');
                 });
         }
-        
-        // Écouteurs Socket.IO
-        socket.on('stats_update', (data) => {
-            updateStats(data);
-        });
-        
+
+        // Socket.IO Listeners
+        socket.on('stats_update', updateStats);
+
         socket.on('subbot_connecting', (data) => {
-            addLog(`🔗 Connexion  ${data.number}...`);
+            addLog(`🔗 Connecting ${data.number}...`);
             updateSubbotCard(data.number, 'connecting');
         });
-        
+
         socket.on('subbot_qr', (data) => {
-            addLog(`📱 Code for  ${data.number}`, 'success');
+            addLog(`📱 Pairing code generated for ${data.number}`, 'success');
             showPairCode(data.number, data.code);
             updateSubbotCard(data.number, 'qr');
         });
-        
+
         socket.on('subbot_connected', (data) => {
-            addLog(`✅ ${data.number} connected succefully !`, 'success');
+            addLog(`✅ ${data.number} connected successfully!`, 'success');
             updateSubbotCard(data.number, 'connected');
-            
-            // Effacer le code de jumelage après connexion
+            showToast(`✅ ${data.number} connected!`, 'success');
+
             if (currentPairCode && currentPairCode.number === data.number) {
                 setTimeout(() => {
                     document.getElementById('pairCodeArea').innerHTML = '';
@@ -637,64 +808,67 @@
                 }, 3000);
             }
         });
-        
+
         socket.on('subbot_disconnected', (data) => {
             addLog(`⚠️ ${data.number} disconnected`, 'warning');
             updateSubbotCard(data.number, 'disconnected');
+            showToast(`⚠️ ${data.number} disconnected`, 'warning');
         });
-        
+
         socket.on('subbot_reconnecting', (data) => {
-            addLog(`🔄 Reconnection ${data.number} (attemps ${data.attempt}/${data.maxRetries})`, 'warning');
+            addLog(`🔄 Reconnecting ${data.number} (attempt ${data.attempt}/${data.maxRetries})`, 'warning');
         });
-        
+
         socket.on('subbot_error', (data) => {
-            addLog(`❌ Error  ${data.number}: ${data.error}`, 'error');
+            addLog(`❌ Error ${data.number}: ${data.error}`, 'error');
+            showToast(`Error: ${data.error}`, 'error');
         });
-        
+
         socket.on('subbot_removed', (data) => {
-            addLog(`🗑️  ${data.number} deleted (${data.reason})`, 'warning');
+            addLog(`🗑️ ${data.number} removed (${data.reason})`, 'warning');
             const card = document.getElementById(`subbot-${data.number}`);
             if (card) card.remove();
             subbots.delete(data.number);
             updateEmptyState();
         });
-        
+
         socket.on('subbot_restarting', (data) => {
             addLog(`🔄 Restarting ${data.number}...`, 'warning');
             updateSubbotCard(data.number, 'connecting');
         });
-        
+
         socket.on('subbot_failed', (data) => {
-            addLog(`❌ high Error with ${data.number}`, 'error');
+            addLog(`❌ Connection failed for ${data.number}`, 'error');
+            showToast(`Failed to connect ${data.number}`, 'error');
             const card = document.getElementById(`subbot-${data.number}`);
             if (card) card.remove();
             subbots.delete(data.number);
             updateEmptyState();
         });
-        
+
         socket.on('main_connected', (data) => {
-            addLog(`✅Main bot connected: ${data.jid}`, 'success');
+            addLog(`✅ Main bot connected: ${data.jid}`, 'success');
+            showToast('Main bot connected!', 'success');
         });
-        
+
         socket.on('main_disconnected', (data) => {
-            addLog(`⚠️ Main disconnected`, 'warning');
+            addLog(`⚠️ Main bot disconnected`, 'warning');
+            showToast('Main bot disconnected!', 'warning');
         });
-        
+
         socket.on('notification', (data) => {
-            addLog(data.message, data.type);
+            addLog(data.message, data.type || 'info');
         });
-        
-        // Permettre d'appuyer sur Entrée pour connecter
+
+        // Event Listeners
         document.getElementById('phoneNumber').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                connectSubbot();
-            }
+            if (e.key === 'Enter') connectBot();
         });
-        
-        // Rafraîchir les stats automatiquement
+
+        // Auto-refresh every 30 seconds
         setInterval(refreshStats, 30000);
-        
-        // Chargement initial
+
+        // Initial load
         fetch('/api/stats')
             .then(res => res.json())
             .then(data => {
@@ -704,11 +878,11 @@
                         updateSubbotCard(bot.number, bot.connected ? 'connected' : 'disconnected');
                     });
                 }
-                addLog('🚀 Dashboard succefully started', 'success');
+                addLog('🚀 Dashboard ready', 'success');
             })
-            .catch(err => addLog('Erreur chargement stats: ' + err.message, 'error'));
-        
-        addLog('🟢 Dashboard 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢 ready', 'success');
+            .catch(err => addLog('Error loading stats: ' + err.message, 'error'));
+
+        addLog('🟢  Dashboard ready', 'success');
     </script>
 </body>
 </html>

@@ -179,10 +179,10 @@ const goodbyeCommand = async (sock, msg) => {
 ┃
 ┃  ⚙️ *Statut :* ${status}
 ┃
-┃  ${PREFIX}goodbye on  → Enable
-┃  ${PREFIX}goodbye off → Disable
-┃  +goodbye on          → Enable
-┃  +goodbye off         → Disable
+┃  ${PREFIX}goodbye on  = Enable
+┃  ${PREFIX}goodbye off = Disable
+┃  +goodbye on          = Enable
+┃  +goodbye off         = Disable
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
         }, { quoted: msg });

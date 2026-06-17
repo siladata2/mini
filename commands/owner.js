@@ -18,7 +18,7 @@ module.exports = {
             });
         }
 
-        const caption = `╭━━━━❲ *CONTACT PROPRIÉTAIRE* ❳━━━━╮
+        const caption = `╭━━━━❲ *CONTACT OWNER* ❳━━━━╮
 ┃
 ┃  👑 *Z3niTsu*
 ┃  +50935948231
