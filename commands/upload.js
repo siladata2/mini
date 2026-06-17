@@ -272,7 +272,7 @@ module.exports = {
             }
 
             // Style Cybernova
-            const messageText = `╭━━━━❲ *UPLOAD - SUCCÈS* ❳━━━━╮
+            const messageText = `╭━━━━❲ *UPLOAD - SUCESS* ❳━━━━╮
 ┃
 ┃  📁 *File :* ${mediaName}
 ┃  📦 *Size :* ${sizeDisplay}
@@ -297,7 +297,7 @@ _©CybernovA_`;
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363425394543602@newsletter',
                         newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                        serverMessageId: 195
+                        serverMessageId: 202
                     }
                 }
             }, { quoted: msg });
@@ -313,7 +313,7 @@ _©CybernovA_`;
 
             let errorMessage = `╭━━━━❲ *ERREUR UPLOAD* ❳━━━━╮
 ┃
-┃  ❌ *Érror upload*
+┃  ❌ *Error upload*
 ┃
 `;
 
@@ -332,7 +332,6 @@ _©CybernovA_`;
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-━━━━━━━━━━━━━━━
 _©CybernovA_`;
             }
 

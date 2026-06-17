@@ -22,7 +22,7 @@ module.exports = {
                 });
             }
             return sock.sendMessage(from, {
-                text: '❌ *Utilisation:*\n`.tiktok [lien TikTok]`\n\n*Exemple:*\n`.tiktok https://vm.tiktok.com/xxxxx`\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
+                text: '❌ *Use :*\n`.tiktok [TikTok link]`\n\n*Exemple:*\n`.tiktok https://vm.tiktok.com/xxxxx`'
             }, { quoted: msg });
         }
 
@@ -46,7 +46,7 @@ module.exports = {
             const data = response.data.data;
 
             if (!data || !data.play) {
-                throw new Error('Vidéo introuvable ou privée');
+                throw new Error('Not found or private');
             }
 
             // Formatage des nombres
@@ -59,9 +59,9 @@ module.exports = {
             const caption = `╭━━━━❲ *TIKTOK DOWNLOAD* ❳━━━━╮
 ┃
 ┃  🎵 *Title :* 
-┃  ${data.title?.substring(0, 60) || 'Sans titre'}
+┃  ${data.title?.substring(0, 60) || 'Without title'}
 ┃
-┃  👤 *Author :* @${data.author?.unique_id || 'Inconnu'}
+┃  👤 *Author :* @${data.author?.unique_id || 'Unknow'}
 ┃  ❤️ *Likes :* ${formatNumber(data.digg_count)}
 ┃  💬 *Comments :* ${formatNumber(data.comment_count)}
 ┃  👁️ *Vues :* ${formatNumber(data.play_count)}
@@ -69,8 +69,8 @@ module.exports = {
 ┃  🎶 *Musique :* ${data.music_info?.title?.substring(0, 40) || 'Inconnue'}
 ┃
 ┃  📊 *Statistics :*
-┃  • forwards : ${formatNumber(data.share_count)}
-┃  • Téléchargements : ${formatNumber(data.download_count)}
+┃  • Forwards : ${formatNumber(data.share_count)}
+┃  • Download : ${formatNumber(data.download_count)}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
@@ -100,7 +100,7 @@ _©CybernovA_`;
             }
 
             // Petit délai avant l'envoi de la vidéo
-            await delay(2000);
+            await delay(1000);
 
             // Choisir la meilleure qualité disponible
             const videoUrl = data.hdplay || data.play || data.wmplay;

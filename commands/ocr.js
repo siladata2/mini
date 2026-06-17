@@ -82,7 +82,7 @@ module.exports = {
             }
 
             // Style Cybernova
-            const response = `╭━━━━❲ *OCR - TEXTE EXTRAIT* ❳━━━━╮
+            const response = `╭━━━━❲ *OCR - TEXT EXTRACTED* ❳━━━━╮
 ┃
 ┃  📝 *Text detected:*
 ┃

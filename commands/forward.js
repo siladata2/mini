@@ -32,7 +32,7 @@ module.exports = {
                     await sock.sendMessage(from, { react: { text: '⚠️', key: msg.key } });
                 }
                 return sock.sendMessage(from, {
-                    text: '❌ *Cible manquante*\n\nUtilisation: `.forward [numéro]`\n\n*Exemple:*\n`.forward 584168698003`\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
+                    text: '❌ *Number missing*\n\nUtilisation: `.forward [numéro]`\n\n*Exemple:*\n`.forward 584168698003`\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
                 }, { quoted: msg });
             }
 
@@ -44,7 +44,7 @@ module.exports = {
                     cleanTarget = `${number}@s.whatsapp.net`;
                 } else {
                     return sock.sendMessage(from, {
-                        text: '❌ *Numéro invalide*\n\nVérifiez le format du numéro.\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
+                        text: '❌ *Invalid numbere*\n\nVerify the format\n\n━━━━━━━━━━━━━━━\n_©CybernovA_'
                     }, { quoted: msg });
                 }
             }
@@ -82,7 +82,7 @@ module.exports = {
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: '120363425394543602@newsletter',
                             newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                            serverMessageId: 195
+                            serverMessageId: 202
                         }
                     }
                 });
@@ -115,7 +115,7 @@ module.exports = {
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: '120363425394543602@newsletter',
                             newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                            serverMessageId: 195
+                            serverMessageId: 202
                         }
                     }
                 });
@@ -148,7 +148,7 @@ module.exports = {
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: '120363425394543602@newsletter',
                             newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                            serverMessageId: 195
+                            serverMessageId: 202
                         }
                     }
                 });
@@ -172,7 +172,7 @@ module.exports = {
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: '120363425394543602@newsletter',
                             newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                            serverMessageId: 195
+                            serverMessageId: 202
                         }
                     }
                 });
