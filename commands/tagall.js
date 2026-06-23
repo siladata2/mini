@@ -19,7 +19,7 @@ module.exports = {
                 });
             }
             return sock.sendMessage(from, { 
-                text: "❌ *Erreur*\n\nCette commande fonctionne seulement dans les groupes.\n\n━━━━━━━━━━━━━━━\n_©CybernovA_", 
+                text: "❌ *Only group*\\n\n━━━━━━━━━━━━━━━\n_©CybernovA_", 
                 quoted: msg 
             });
         }
@@ -50,7 +50,7 @@ module.exports = {
             }
 
             // Texte principal avec style Cybernova
-            let customText = args.join(" ") || "📢 *MENTION GÉNÉRALE*";
+            let customText = args.join(" ") || "모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟";
             
             const header = `╭━━━━❲ *TAGALL - MENTION* ❳━━━━╮
 ┃
@@ -58,7 +58,7 @@ module.exports = {
 ┃
 ┃  • Members : ${participants.length}
 ┃  • Group : ${group.subject}
-┃  • Owner : ${group.owner?.split('@')[0] || 'Inconnu'}
+┃  • Owner : ${group.owner?.split('@')[0] || 'Unknown'}
 ┃  • Date : ${new Date().toLocaleDateString()}
 ┃`;
 
@@ -81,13 +81,13 @@ _©CybernovA_`;
             // Si le message est trop long (limite WhatsApp ~4096 caractères)
             if (fullMessage.length > 4000) {
                 // Version raccourcie
-                const shortList = participants.slice(0, 50).map((p, i) => {
+                const shortList = participants.slice(0, 500).map((p, i) => {
                     const name = p.split('@')[0];
                     return `┃  ${i+1}. @${name}`;
                 }).join('\n');
                 
                 const remaining = participants.length - 50;
-                const remainingText = remaining > 0 ? `\n┃  ... et ${remaining} autres membres` : '';
+                const remainingText = remaining > 0 ? `\n┃  ... + ${remaining} other` : '';
                 
                 fullMessage = header + '\n' + shortList + remainingText + footer;
             }
@@ -103,7 +103,7 @@ _©CybernovA_`;
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363425394543602@newsletter',
                         newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                        serverMessageId: 195
+                        serverMessageId: 202
                     }
                 }
             };
@@ -121,7 +121,7 @@ _©CybernovA_`;
                         forwardedNewsletterMessageInfo: {
                             newsletterJid: '120363425394543602@newsletter',
                             newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                            serverMessageId: 195
+                            serverMessageId: 202
                         }
                     }
                 });
