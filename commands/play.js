@@ -445,15 +445,6 @@ module.exports = {
                 audio : audioBuffer,
                 mimetype: 'audio/mpeg',
                 ptt   : false,          // false = fichier audio, true = vocal
-                contextInfo: {
-                    mentionedJid: [from],
-                    forwardingScore: 540,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid      : CONFIG.NEWSLETTER.jid,
-                        newsletterName     : CONFIG.NEWSLETTER.name,
-                        serverMessageId    : CONFIG.NEWSLETTER.serverMessageId
-                    }
                 }
             }, { quoted: msg });
 

@@ -223,7 +223,7 @@ module.exports = {
             } else if (quoted.videoMessage) {
                 messageType = 'videoMessage';
                 mediaMessage = quoted.videoMessage;
-                mediaName = '🎬 Vidéo';
+                mediaName = '🎬 Video';
             } else if (quoted.documentMessage) {
                 messageType = 'documentMessage';
                 mediaMessage = quoted.documentMessage;
@@ -272,7 +272,7 @@ module.exports = {
             }
 
             // Style Cybernova
-            const messageText = `╭━━━━❲ *UPLOAD - SUCESS* ❳━━━━╮
+            const messageText = `╭━━━━❲ *UPLOAD - SUCCESS* ❳━━━━╮
 ┃
 ┃  📁 *File :* ${mediaName}
 ┃  📦 *Size :* ${sizeDisplay}
