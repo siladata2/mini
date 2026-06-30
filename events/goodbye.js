@@ -1,3 +1,5 @@
+
+// ./events/goodbye.js
 const fs = require('fs');
 const path = require('path');
 
@@ -9,50 +11,97 @@ const dbDir = path.join(process.cwd(), 'database');
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 if (!fs.existsSync(GOODBYE_FILE)) fs.writeFileSync(GOODBYE_FILE, '{}');
 
-// 🔁 Fonctions de lecture/sauvegarde
-const getGoodbye = () => {
+// 🔁 Fonctions de lecture/sauvegarde avec gestion d'erreurs
+function getGoodbye() {
     try {
         return JSON.parse(fs.readFileSync(GOODBYE_FILE, 'utf8'));
     } catch (err) {
-        console.error('❌ Erreur lecture goodbye.json:', err);
+        console.error('❌ Error reading goodbye.json:', err);
         return {};
     }
-};
+}
 
-const saveGoodbye = (data) => {
+function saveGoodbye(data) {
     try {
         fs.writeFileSync(GOODBYE_FILE, JSON.stringify(data, null, 2));
     } catch (err) {
-        console.error('❌ Erreur sauvegarde goodbye.json:', err);
+        console.error('❌ Error saving goodbye.json:', err);
     }
-};
+}
+
+// 🖼️ Image de secours par défaut
+const DEFAULT_GOODBYE_IMAGE = 'https://iili.io/BQeNq0b.jpg';
+
+// 🎲 Liste d'images supplémentaires pour goodbye (optionnel)
+const goodbyeImages = [
+    'https://iili.io/BQeNq0b.jpg',
+    'https://files.catbox.moe/jcf2qc.jpg',
+    'https://files.catbox.moe/tz07yl.jpg',
+    'https://iili.io/BsJvF7R.jpg',
+    'https://iili.io/BsJUPjV.jpg',
+    'https://iili.io/BsdTfqJ.jpg',
+    'https://iili.io/Bsd7U0u.jpg',
+    'https://iili.io/BsdNyMu.jpg',
+    'https://iili.io/Bsdk4MF.jpg',
+    'https://iili.io/BsdgELN.jpg',
+    'https://iili.io/Bsd6h21.jpg',
+    'https://iili.io/BsdsRrN.jpg',
+    'https://iili.io/BsdGUHF.jpg',
+    'https://files.catbox.moe/8s31s2.jpg',
+    'https://files.catbox.moe/48pqbp.jpg',
+    'https://files.catbox.moe/ufzn87.jpg',
+    'https://files.catbox.moe/718prk.jpg',
+    'https://files.catbox.moe/3c33kh.jpg',
+    'https://files.catbox.moe/verxnu.jpg',
+    'https://files.catbox.moe/noph7e.jpg'
+];
+
+// 🔀 Fonction pour choisir une image aléatoire
+function getRandomGoodbyeImage() {
+    return goodbyeImages[Math.floor(Math.random() * goodbyeImages.length)];
+}
 
 // 🔒 Anti-spam : cache des derniers messages envoyés
 const lastGoodbyeSent = new Map();
 
+// Nettoyer périodiquement le cache
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamp] of lastGoodbyeSent) {
+        if (now - timestamp > 300000) { // 5 minutes
+            lastGoodbyeSent.delete(key);
+        }
+    }
+}, 60000);
+
 // =========================
 // 👋 EVENT GOODBYE
 // =========================
-const goodbyeEvent = async (sock, update) => {
+async function goodbyeEvent(sock, update) {
     try {
         const { id, participants, action } = update;
 
-        if (!id || !participants) return;
+        if (!id || !participants || !action) return;
 
         const db = getGoodbye();
 
-        // ✅ ON PAR DÉFAUT
+        // ✅ Par défaut ON (si non défini)
         if (db[id] === false) return;
 
         if (action === 'remove') {
-            // Anti-spam: attendre un peu
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Récupérer les métadonnées du groupe
+            let metadata;
+            try {
+                metadata = await sock.groupMetadata(id);
+            } catch (err) {
+                console.error('❌ Error fetching group metadata:', err.message);
+                return;
+            }
 
-            const metadata = await sock.groupMetadata(id).catch(() => null);
             if (!metadata) return;
 
-            const groupName = metadata.subject || 'Groupe';
-            const members = metadata.participants.length;
+            const groupName = metadata.subject || 'Group';
+            const members = metadata.participants ? metadata.participants.length : 0;
 
             for (let user of participants) {
                 const jid = typeof user === 'string' ? user : user.id;
@@ -60,150 +109,192 @@ const goodbyeEvent = async (sock, update) => {
 
                 // 🔒 Anti-spam : éviter les doublons
                 const cacheKey = `${id}_${jid}`;
-                if (lastGoodbyeSent.has(cacheKey)) {
-                    const lastTime = lastGoodbyeSent.get(cacheKey);
-                    if (Date.now() - lastTime < 60000) { // 1 minute
-                        continue;
-                    }
+                const lastTime = lastGoodbyeSent.get(cacheKey);
+                if (lastTime && Date.now() - lastTime < 10000) { // 1 minute
+                    continue;
                 }
                 lastGoodbyeSent.set(cacheKey, Date.now());
 
-                // 📸 récupérer photo profil
-                let pp;
+                // 📸 Récupérer la photo de profil
+                let profilePic = null;
                 try {
-                    pp = await sock.profilePictureUrl(jid, 'image');
-                } catch {
-                    pp = 'https://iili.io/BQeNq0b.jpg';
+                    profilePic = await sock.profilePictureUrl(jid, 'image');
+                } catch (ppErr) {
+                    // Photo de profil non disponible
+                    console.log(`⚠️ No profile picture for ${jid}, trying fallback image...`);
                 }
 
-                await sock.sendMessage(id, {
-                    image: { url: pp },
-                    caption: `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢
-𝙶𝚘𝚘𝚍𝚋𝚢𝚎 🫂 @${jid.split('@')[0]} !☹
+                // Message caption commun
+                const captionText = `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢\n\n` +
+                    `𝙶𝚘𝚘𝚍𝚋𝚢𝚎 🫂 @${jid.split('@')[0]} !☹\n\n` +
+                    `➟ *Group* ${groupName}\n` +
+                    `➟ ${members} members now.\n\n` +
+                    `𝙒𝙚 𝙬𝙞𝙡𝙡 𝙢𝙞𝙨𝙨 𝙮𝙤𝙪 🥀\n` +
+                    `*https://whatsapp.com/channel/0029Vb8BKWwH5JLxq1ef1R43*`;
 
-➟ *Group* ${groupName}
-➟  ${members} now .
-
-
-𝙒𝙚 𝙬𝙞𝙡𝙡 𝙢𝙞𝙨𝙨 𝙮𝙤𝙪 🥀
-*https://whatsapp.com/channel/0029Vb8BKWwH5JLxq1ef1R43*`,
-                    contextInfo: {
-                        mentionedJid: [jid],
-                        forwardingScore: 240,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363425394543602@newsletter',
-                            newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                            serverMessageId: 202
-                        }
+                // Contexte CyberNova commun
+                const contextInfo = {
+                    mentionedJid: [jid],
+                    forwardingScore: 240,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363425394543602@newsletter',
+                        newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                        serverMessageId: 193
                     }
-                });
+                };
 
-                // ⚡ anti-spam entre les membres
-                await new Promise(res => setTimeout(res, 2000));
+                let sent = false;
+
+                // Essayer avec photo de profil
+                if (profilePic) {
+                    try {
+                        await sock.sendMessage(id, {
+                            image: { url: profilePic },
+                            caption: captionText,
+                            contextInfo: contextInfo
+                        });
+                        sent = true;
+                    } catch (profilePicErr) {
+                        console.error('⚠️ Profile picture send failed:', profilePicErr.message);
+                    }
+                }
+
+                // Fallback 1 : image de secours aléatoire
+                if (!sent) {
+                    try {
+                        const fallbackImage = getRandomGoodbyeImage();
+                        await sock.sendMessage(id, {
+                            image: { url: fallbackImage },
+                            caption: captionText,
+                            contextInfo: contextInfo
+                        });
+                        sent = true;
+                    } catch (fallbackImgErr) {
+                        console.error('⚠️ Fallback image failed:', fallbackImgErr.message);
+                    }
+                }
+
+                // Fallback 2 : image par défaut ultime
+                if (!sent) {
+                    try {
+                        await sock.sendMessage(id, {
+                            image: { url: DEFAULT_GOODBYE_IMAGE },
+                            caption: captionText,
+                            contextInfo: contextInfo
+                        });
+                        sent = true;
+                    } catch (defaultImgErr) {
+                        console.error('⚠️ Default image failed:', defaultImgErr.message);
+                    }
+                }
+
+                // Fallback 3 : texte seul (sans image)
+                if (!sent) {
+                    try {
+                        await sock.sendMessage(id, {
+                            text: captionText,
+                            contextInfo: contextInfo
+                        });
+                    } catch (textErr) {
+                        console.error('❌ Goodbye text fallback also failed:', textErr.message);
+                    }
+                }
+
+                // ⚡ Anti-spam entre les membres
+                await new Promise(res => setTimeout(res, 900));
             }
-
-            // Nettoyer le cache périodiquement
-            setTimeout(() => {
-                for (const user of participants) {
-                    const jid = typeof user === 'string' ? user : user.id;
-                    if (jid) {
-                        const cacheKey = `${id}_${jid}`;
-                        lastGoodbyeSent.delete(cacheKey);
-                    }
-                }
-            }, 300000); // 5 minutes
         }
 
     } catch (err) {
-        console.log('❌ Erreur goodbye:', err);
+        console.error('❌ Goodbye event error:', err.message || err);
     }
-};
+}
 
 // =========================
 // ⚙️ COMMANDE GOODBYE
 // =========================
-const goodbyeCommand = async (sock, msg) => {
+async function goodbyeCommand(sock, msg, args, jid) {
     try {
-        const from = msg.key.remoteJid;
-        if (!from.endsWith('@g.us')) return;
-
-        const body =
-            msg.message.conversation ||
-            msg.message.extendedTextMessage?.text ||
-            '';
-
-        if (!body) return;
-
-        // ✅ Support des DEUX préfixes
-        const PREFIX = global.PREFIX || '.';
-        const hasPrefix = body.startsWith(PREFIX) || body.startsWith('+');
-        if (!hasPrefix) return;
-
-        // Extraire la commande sans le préfixe
-        let commandText = body;
-        if (body.startsWith(PREFIX)) {
-            commandText = body.slice(PREFIX.length).trim();
-        } else if (body.startsWith('+')) {
-            commandText = body.slice(1).trim();
+        // Seulement dans les groupes
+        if (!jid.endsWith('@g.us')) {
+            return sock.sendMessage(jid, {
+                text: '❌ This command only works in groups.',
+                contextInfo: {
+                    forwardingScore: 350,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363425394543602@newsletter',
+                        newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                        serverMessageId: 202
+                    }
+                }
+            }, { quoted: msg });
         }
 
-        // Vérifier si c'est la commande goodbye
-        if (!commandText.toLowerCase().startsWith('goodbye')) return;
-
-        const args = commandText.split(/\s+/);
-        const option = args[1]?.toLowerCase();
-
+        const option = args[0]?.toLowerCase();
         const db = getGoodbye();
 
-        if (option === 'off') {
-            db[from] = false;
-            saveGoodbye(db);
-            return sock.sendMessage(from, {
-                text: '❌ *Goodbye disable* in this group'
-            }, { quoted: msg });
-        }
+        // Contexte CyberNova commun
+        const contextInfo = {
+            forwardingScore: 350,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363425394543602@newsletter',
+                newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                serverMessageId: 202
+            }
+        };
 
+        // Activer/Désactiver goodbye
         if (option === 'on') {
-            db[from] = true;
+            db[jid] = true;
             saveGoodbye(db);
-            return sock.sendMessage(from, {
-                text: '✅ *Goodbye Enable* in this group''
+            return sock.sendMessage(jid, {
+                text: '✅ *Goodbye Enabled* in this group',
+                contextInfo: contextInfo
             }, { quoted: msg });
         }
 
-        const status = db[from] === false ? '❌ OFF' : '✅ ON';
+        if (option === 'off') {
+            db[jid] = false;
+            saveGoodbye(db);
+            return sock.sendMessage(jid, {
+                text: '❌ *Goodbye Disabled* in this group',
+                contextInfo: contextInfo
+            }, { quoted: msg });
+        }
 
-        await sock.sendMessage(from, {
-            text: `╭━━━━❲ *GOODBYE STATUS* ❳━━━━╮
-┃
-┃  ⚙️ *Statut :* ${status}
-┃
-┃  ${PREFIX}goodbye on  = Enable
-┃  ${PREFIX}goodbye off = Disable
-┃  +goodbye on          = Enable
-┃  +goodbye off         = Disable
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
+        // Afficher le statut
+        const status = db[jid] === false ? '❌ OFF' : '✅ ON';
+        const prefix = GLOBAL.PREFIX || '.';
+
+        await sock.sendMessage(jid, {
+            text: `╭━━━━❲ *GOODBYE STATUS* ❳━━━━╮\n` +
+                  `┃\n` +
+                  `┃  ⚙️ *Status :* ${status}\n` +
+                  `┃\n` +
+                  `┃  ${prefix}goodbye on  = Enable\n` +
+                  `┃  ${prefix}goodbye off = Disable\n` +
+                  `┃\n` +
+                  `╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`,
+            contextInfo: contextInfo
         }, { quoted: msg });
 
     } catch (err) {
-        console.log('❌ Erreur commande goodbye:', err);
+        console.error('❌ Goodbye command error:', err.message || err);
     }
-};
+}
 
 // =========================
-// 📤 EXPORT POUR LE CHARGEUR D'EVENTS
+// 📤 EXPORTS POUR LE CHARGEUR
 // =========================
 module.exports = {
+    // Pour le chargeur d'événements
     event: 'group-participants.update',
-    execute: goodbyeEvent
-};
+    execute: goodbyeEvent,
 
-// =========================
-// 📤 EXPORT POUR LA COMMANDE (optionnel)
-// =========================
-module.exports.command = {
+    // Pour le chargeur de commandes
     name: 'goodbye',
-    execute: goodbyeCommand
+    command: goodbyeCommand
 };

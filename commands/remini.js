@@ -1,346 +1,181 @@
+// ./commands/remini.js
+
 const axios = require('axios');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+const FormData = require('form-data');
+const fs = require('fs');
+const path = require('path');
 
-// =========================
-// 🔧 HELPER FUNCTIONS
-// =========================
+const TEMP_DIR = path.join(process.cwd(), 'temp');
+if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
 
-// 📤 Upload image to temporary hosting
-const uploadImage = async (buffer) => {
-    try {
-        // Utiliser une API d'upload gratuite
-        const formData = new FormData();
-        const blob = new Blob([buffer]);
-        formData.append('file', blob, 'image.jpg');
-        
-        const response = await axios.post('https://qu.ax/upload.php', formData, {
-            headers: formData.getHeaders(),
-            timeout: 30000
-        });
-        
-        if (response.data && response.data.url) {
-            return response.data.url;
-        }
-        throw new Error('Upload failed');
-    } catch (error) {
-        console.error('Upload error:', error.message);
-        // Fallback: utiliser une autre API
-        try {
-            const formData = new FormData();
-            const blob = new Blob([buffer]);
-            formData.append('image', blob);
-            
-            const response = await axios.post('https://api.imgbb.com/1/upload?key=YOUR_API_KEY', formData, {
-                headers: formData.getHeaders(),
-                timeout: 30000
-            });
-            
-            if (response.data && response.data.data && response.data.data.url) {
-                return response.data.data.url;
-            }
-        } catch (fallbackError) {
-            console.error('Fallback upload error:', fallbackError.message);
-        }
-        throw new Error('No upload service available');
-    }
-};
+// ═══════════════════════════════════════
+// UTILITY: Download quoted media
+// ═══════════════════════════════════════
 
-// 📸 Get image from message or quoted message
-const getQuotedOrOwnImageUrl = async (sock, msg) => {
-    // 1) Quoted image (highest priority)
-    const quoted = msg?.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-    if (quoted?.imageMessage) {
-        const stream = await downloadContentFromMessage(quoted.imageMessage, 'image');
-        const chunks = [];
-        for await (const chunk of stream) chunks.push(chunk);
-        const buffer = Buffer.concat(chunks);
-        return await uploadImage(buffer);
-    }
+async function downloadMedia(mediaMessage, type) {
+    const stream = await downloadContentFromMessage(mediaMessage, type);
+    let buffer = Buffer.from([]);
+    for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
+    return buffer;
+}
 
-    // 2) Image in the current message
-    if (msg?.message?.imageMessage) {
-        const stream = await downloadContentFromMessage(msg.message.imageMessage, 'image');
-        const chunks = [];
-        for await (const chunk of stream) chunks.push(chunk);
-        const buffer = Buffer.concat(chunks);
-        return await uploadImage(buffer);
-    }
+// ═══════════════════════════════════════
+// UTILITY: Upload to Catbox
+// ═══════════════════════════════════════
 
-    return null;
-};
+async function uploadToCatbox(buffer) {
+    const form = new FormData();
+    form.append('fileToUpload', buffer, `remini_${Date.now()}.jpg`);
+    form.append('reqtype', 'fileupload');
 
-// ✅ Validate URL
-const isValidUrl = (string) => {
-    try {
-        new URL(string);
-        return true;
-    } catch (_) {
-        return false;
-    }
-};
+    const { data } = await axios.post('https://catbox.moe/user/api.php', form, {
+        headers: form.getHeaders(),
+        timeout: 30000,
+    });
 
-// =========================
-// 📋 MAIN COMMAND
-// =========================
+    return data.trim();
+}
+
+// ═══════════════════════════════════════
+// COMMAND
+// ═══════════════════════════════════════
+
 module.exports = {
     name: 'remini',
-    aliases: ['enhance', 'hd', 'upscale', 'remini-ai', 'image-hd'],
-    description: 'Enhance and upscale images using AI',
+    aliases: ['hd', 'enhance', 'upscale', 'improve'],
+    category: 'tools',
 
-    async execute({ sock, msg, args, jid, text, config, stats }) {
-        const from = jid || msg?.key?.remoteJid;
+    async execute({ sock, msg, args, jid }) {
+        const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
 
-        if (!from) {
-            console.error('❌ JID not available');
-            return;
-        }
-
-        // =========================
-        // 📋 SHOW HELP
-        // =========================
-        if (args.length === 0 || args[0].toLowerCase() === 'help') {
-            if (msg?.key) {
-                await sock.sendMessage(from, {
-                    react: { text: '📋', key: msg.key }
-                });
+        // Check for quoted image
+        if (!quoted || !quoted.imageMessage) {
+            // Check if URL provided in args
+            const urlArg = args[0];
+            if (urlArg && urlArg.startsWith('http')) {
+                return processRemini(sock, msg, jid, urlArg);
             }
 
-            const helpMessage = `╭━━━━❲ *REMINI AI IMAGE ENHANCER* ❳━━━━╮
-┃
-┃  ✨ *Usage :*
-┃  • .remini [image_url]
-┃  • Reply to an image with .remini
-┃  • Send image with .remini
-┃
-┃  💡 *Examples :*
-┃  .remini https://example.com/image.jpg
-┃  .remini (reply to image)
-┃  .enhance (send image)
-┃
-┃  🎯 *Features :*
-┃  • AI-powered enhancement
-┃  • Upscale resolution
-┃  • Improve quality
-┃  • Remove artifacts
-┃
-┃  ⏳ *Processing time :* 30-60 seconds
-┃  📦 *Max file size :* 10MB
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-
-━━━━━━━━━━━━━━━
-_©CybernovA_`;
-
-            return sock.sendMessage(from, {
-                text: helpMessage,
+            return sock.sendMessage(jid, {
+                text:
+                    '🔮 *Remini HD Enhancer*\n\n' +
+                    '⚡ *Usage:*\n' +
+                    '.remini (reply to an image)\n' +
+                    '.remini <image_url>\n\n' +
+                    '✨ *Examples:*\n' +
+                    '.remini (reply to a blurry photo)\n' +
+                    '.remini https://example.com/photo.jpg\n\n' +
+                    '💡 Enhances image quality using AI.',
                 contextInfo: {
-                    mentionedJid: [from],
-                    forwardingScore: 540,
+                    forwardingScore: 350,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363425394543602@newsletter',
                         newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                        serverMessageId: 202
-                    }
-                }
+                        serverMessageId: 202,
+                    },
+                },
             }, { quoted: msg });
         }
 
-        if (msg?.key) {
-            await sock.sendMessage(from, {
-                react: { text: '⚡', key: msg.key }
-            });
-        }
+        try { await sock.sendMessage(jid, { react: { text: '🔮', key: msg.key } }); } catch (_) {}
 
         try {
-            let imageUrl = null;
+            // Download image
+            const buffer = await downloadMedia(quoted.imageMessage, 'image');
+            const imageUrl = await uploadToCatbox(buffer);
 
-            // =========================
-            // 🔍 CHECK FOR URL
-            // =========================
-            if (args.length > 0) {
-                const url = args.join(' ');
-                if (isValidUrl(url)) {
-                    imageUrl = url;
-                } else {
-                    if (msg?.key) {
-                        await sock.sendMessage(from, {
-                            react: { text: '❌', key: msg.key }
-                        });
-                    }
-                    return sock.sendMessage(from, {
-                        text: `❌ *Invalid URL*\n\nPlease provide a valid image URL.\n\nExample: .remini https://example.com/image.jpg`
-                    }, { quoted: msg });
-                }
-            } else {
-                // =========================
-                // 📸 GET IMAGE FROM MESSAGE
-                // =========================
+            if (!imageUrl) throw new Error('Upload failed');
 
-                imageUrl = await getQuotedOrOwnImageUrl(sock, msg);
+            await processRemini(sock, msg, jid, imageUrl);
 
-                if (!imageUrl) {
-                    if (msg?.key) {
-                        await sock.sendMessage(from, {
-                            react: { text: '❓', key: msg.key }
-                        });
-                    }
-                    return sock.sendMessage(from, {
-                        text: `╭━━━━❲ *NO IMAGE FOUND* ❳━━━━╮
-┃
-┃  ❌ *No image detected*
-┃
-┃  📌 *Usage :*
-┃  • Reply to an image with .remini
-┃  • Send image with .remini
-┃  • .remini [image_url]
-┃
-┃  💡 *Example :*
-┃  .remini https://example.com/image.jpg
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+        } catch (err) {
+            console.error('❌ remini error:', err.message);
+            try { await sock.sendMessage(jid, { react: { text: '❌', key: msg.key } }); } catch (_) {}
 
-━━━━━━━━━━━━━━━
-_©CybernovA_`
-                    }, { quoted: msg });
-                }
-            }
-
-            if (msg?.key) {
-                await sock.sendMessage(from, {
-                    react: { text: '🔄', key: msg.key }
-                });
-            }
-
-            // =========================
-            // 🤖 CALL REMINI API
-            // =========================
-            const apiUrl = `https://api.princetechn.com/api/tools/remini?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(imageUrl)}`;
-
-            const response = await axios.get(apiUrl, {
-                timeout: 60000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
-            });
-
-            if (response.data && response.data.success && response.data.result) {
-                const result = response.data.result;
-
-                if (result.image_url) {
-                    // =========================
-                    // 📥 DOWNLOAD ENHANCED IMAGE
-                    // =========================
-                    const imageResponse = await axios.get(result.image_url, {
-                        responseType: 'arraybuffer',
-                        timeout: 30000
-                    });
-
-                    if (imageResponse.status === 200 && imageResponse.data) {
-                        if (msg?.key) {
-                            await sock.sendMessage(from, {
-                                react: { text: '✨', key: msg.key }
-                            });
-                        }
-
-                        const fileSizeKB = (imageResponse.data.length / 1024).toFixed(2);
-                        const fileSizeMB = (imageResponse.data.length / (1024 * 1024)).toFixed(2);
-                        const sizeDisplay = fileSizeKB > 1024 ? `${fileSizeMB} MB` : `${fileSizeKB} KB`;
-
-                        // =========================
-                        // 📤 SEND ENHANCED IMAGE
-                        // =========================
-                        const caption = `╭━━━━❲ *REMINI AI - ENHANCED* ❳━━━━╮
-┃
-┃  ✨ *Image enhanced successfully !*
-┃
-┃  📦 *Size :* ${sizeDisplay}
-┃  📡 *AI Engine :* Remini
-┃  📅 *Date :* ${new Date().toLocaleDateString()}
-┃
-┃  💡 *Tip :* Use .remini again
-┃  to enhance more images
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
-
-━━━━━━━━━━━━━━━
-_©CybernovA_`;
-
-                        await sock.sendMessage(from, {
-                            image: imageResponse.data,
-                            caption: caption,
-                            contextInfo: {
-                                mentionedJid: [from],
-                                forwardingScore: 540,
-                                isForwarded: true,
-                                forwardedNewsletterMessageInfo: {
-                                    newsletterJid: '120363425394543602@newsletter',
-                                    newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                                    serverMessageId: 202
-                                }
-                            }
-                        }, { quoted: msg });
-
-                        if (msg?.key) {
-                            await sock.sendMessage(from, {
-                                react: { text: '✅', key: msg.key }
-                            });
-                        }
-
-                        // =========================
-                        // 📊 CONFIRMATION
-                        // =========================
-                        await sock.sendMessage(from, {
-                            text: `✅ *Enhancement complete !*\n\n📸 Image enhanced successfully with AI.\n📦 ${sizeDisplay}\n\n━━━━━━━━━━━━━━━\n_©CybernovA_`
-                        }, { quoted: msg });
-
-                    } else {
-                        throw new Error('Failed to download enhanced image');
-                    }
-                } else {
-                    throw new Error(result.message || 'Failed to enhance image');
-                }
-            } else {
-                throw new Error('API returned invalid response');
-            }
-
-        } catch (error) {
-            console.error('[REMINI] Error:', error.message);
-
-            if (msg?.key) {
-                await sock.sendMessage(from, {
-                    react: { text: '💥', key: msg.key }
-                });
-            }
-
-            // =========================
-            // ❌ ERROR HANDLING
-            // =========================
-            let errorMessage = `╭━━━━❲ *REMINI ERROR* ❳━━━━╮\n┃\n┃  ❌ *Failed to enhance image*\n┃\n`;
-
-            if (error.response?.status === 429) {
-                errorMessage += `┃  ⏰ *Rate limit exceeded*\n┃\n┃  💡 *Please try again later*\n`;
-            } else if (error.response?.status === 400) {
-                errorMessage += `┃  ❌ *Invalid image URL or format*\n┃\n┃  💡 *Check the image link*\n`;
-            } else if (error.response?.status === 500) {
-                errorMessage += `┃  🔧 *Server error*\n┃\n┃  💡 *Try again later*\n`;
-            } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-                errorMessage += `┃  ⏰ *Request timeout*\n┃\n┃  💡 *The server took too long*\n┃  • Try again later\n┃  • Use smaller image\n`;
-            } else if (error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED')) {
-                errorMessage += `┃  🌐 *Network error*\n┃\n┃  💡 *Check your connection*\n`;
-            } else if (error.message.includes('Upload failed') || error.message.includes('No upload service')) {
-                errorMessage += `┃  📤 *Upload service error*\n┃\n┃  💡 *Try again with a URL*\n`;
-            } else if (error.message.includes('No image found') || error.message.includes('No image detected')) {
-                errorMessage += `┃  📸 *No image detected*\n┃\n┃  💡 *Reply to an image with .remini*\n`;
-            } else {
-                errorMessage += `┃  📝 *Error :* ${error.message.substring(0, 50)}\n┃\n┃  💡 *Try again in a few minutes*\n`;
-            }
-
-            errorMessage += `┃\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n━━━━━━━━━━━━━━━\n_©CybernovA_`;
-
-            await sock.sendMessage(from, {
-                text: errorMessage
+            await sock.sendMessage(jid, {
+                text: '❌ *Enhancement Failed*\n\nThe image could not be processed. Try again.',
+                contextInfo: {
+                    forwardingScore: 350,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363425394543602@newsletter',
+                        newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                        serverMessageId: 202,
+                    },
+                },
             }, { quoted: msg });
         }
-    }
+    },
 };
+
+// ═══════════════════════════════════════
+// PROCESS REMINI
+// ═══════════════════════════════════════
+
+async function processRemini(sock, msg, jid, imageUrl) {
+    try {
+        const encodedUrl = encodeURIComponent(imageUrl);
+
+        const { data } = await axios.get(
+            `https://api.giftedtech.co.ke/api/tools/remini?apikey=gifted&url=${encodedUrl}`,
+            { timeout: 90000 }
+        );
+
+        let resultUrl = null;
+        if (data?.result?.url) resultUrl = data.result.url;
+        else if (data?.url) resultUrl = data.url;
+        else if (data?.image_url) resultUrl = data.image_url;
+        else if (typeof data === 'string' && data.startsWith('http')) resultUrl = data;
+
+        if (!resultUrl) throw new Error('No enhanced image');
+
+        // Try sending as image
+        let sent = false;
+        try {
+            await sock.sendMessage(jid, {
+                image: { url: resultUrl },
+                caption:
+                    '🔮 *Remini HD*\n\n' +
+                    '✨ Image enhanced successfully!\n\n' +
+                    `⚡ _Powered by Zenitsu_`,
+                contextInfo: {
+                    forwardingScore: 350,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363425394543602@newsletter',
+                        newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                        serverMessageId: 202,
+                    },
+                },
+            }, { quoted: msg });
+            sent = true;
+        } catch (_) {}
+
+        // Fallback: send link
+        if (!sent) {
+            await sock.sendMessage(jid, {
+                text:
+                    '🔮 *Remini HD*\n\n' +
+                    '✨ Image enhanced!\n\n' +
+                    `🔗 *Link:* ${resultUrl}`,
+                contextInfo: {
+                    forwardingScore: 350,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363425394543602@newsletter',
+                        newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                        serverMessageId: 202,
+                    },
+                },
+            }, { quoted: msg });
+        }
+
+        try { await sock.sendMessage(jid, { react: { text: '✅', key: msg.key } }); } catch (_) {}
+
+    } catch (err) {
+        console.error('❌ remini process error:', err.message);
+        throw err;
+    }
+}

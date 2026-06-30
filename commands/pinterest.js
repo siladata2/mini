@@ -222,7 +222,7 @@ module.exports = {
         sent++;
 
         // Pause entre les images pour éviter le rate limit
-        if (sent < imageUrls.length) await new Promise(r => setTimeout(r, 600));
+        if (sent < imageUrls.length) await new Promise(r => setTimeout(r, 500));
 
       } catch (e) {
         sendErrors.push(e.message);
@@ -233,7 +233,7 @@ module.exports = {
       await react(sock, msg, '💤');
       await sock.sendMessage(jid, {
         text: '❌ Found URLs but failed to download images.\n' +
-          sendErrors.slice(0, 3).map(e => `• ${e}`).join('\n'),
+          sendErrors.slice(0, 10).map(e => `• ${e}`).join('\n'),
       }, { quoted: msg });
       return;
     }

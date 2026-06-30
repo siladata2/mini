@@ -373,7 +373,7 @@ const askAI = async (prompt, selectedId = null) => {
 // ╚══════════════════════════════════════════════════╝
 
 module.exports = {
-    name        : 'ai',
+    name        : 'ask',
     aliases     : ['ia', 'ask', 'chat', 'gpt', 'llm', 'assistant'],
     description : 'AI Assistant with automatic fallback',
 

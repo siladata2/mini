@@ -1,3 +1,5 @@
+
+// ./events/welcome.js
 const fs = require('fs');
 const path = require('path');
 
@@ -10,22 +12,22 @@ if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 if (!fs.existsSync(WELCOME_FILE)) fs.writeFileSync(WELCOME_FILE, '{}');
 
 // 🔁 Fonctions de lecture/sauvegarde avec gestion d'erreurs
-const getWelcome = () => {
+function getWelcome() {
     try {
         return JSON.parse(fs.readFileSync(WELCOME_FILE, 'utf8'));
     } catch (err) {
-        console.error('❌ Erreur lecture welcome.json:', err);
+        console.error('❌ Error reading welcome.json:', err);
         return {};
     }
-};
+}
 
-const saveWelcome = (data) => {
+function saveWelcome(data) {
     try {
         fs.writeFileSync(WELCOME_FILE, JSON.stringify(data, null, 2));
     } catch (err) {
-        console.error('❌ Erreur sauvegarde welcome.json:', err);
+        console.error('❌ Error saving welcome.json:', err);
     }
-};
+}
 
 // 🎲 Liste d'images (support mp4 et jpg)
 const welcomeImages = [
@@ -55,22 +57,32 @@ const welcomeImages = [
 ];
 
 // 🔀 Fonction pour choisir une image aléatoire
-const getRandomImage = () => {
+function getRandomImage() {
     return welcomeImages[Math.floor(Math.random() * welcomeImages.length)];
-};
+}
 
 // ✅ Vérifier si c'est une image ou vidéo
-const getMediaType = (url) => {
+function getMediaType(url) {
     return url.endsWith('.mp4') ? 'video' : 'image';
-};
+}
 
 // 🔒 Anti-spam : cache des derniers messages envoyés
 const lastWelcomeSent = new Map();
 
+// Nettoyer périodiquement le cache pour éviter les fuites mémoire
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamp] of lastWelcomeSent) {
+        if (now - timestamp > 300000) { // 5 minutes
+            lastWelcomeSent.delete(key);
+        }
+    }
+}, 60000); // Vérifier chaque minute
+
 // =========================
 // 🎉 EVENT WELCOME
 // =========================
-const welcomeEvent = async (sock, update) => {
+async function welcomeEvent(sock, update) {
     try {
         const { id, participants, action } = update;
 
@@ -82,14 +94,19 @@ const welcomeEvent = async (sock, update) => {
         if (db[id] === false) return;
 
         if (action === 'add') {
-            // Anti-spam: attendre un peu pour éviter les erreurs
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Récupérer les métadonnées du groupe
+            let metadata;
+            try {
+                metadata = await sock.groupMetadata(id);
+            } catch (err) {
+                console.error('❌ Error fetching group metadata:', err.message);
+                return;
+            }
 
-            const metadata = await sock.groupMetadata(id).catch(() => null);
             if (!metadata) return;
 
-            const groupName = metadata.subject || 'Groupe';
-            const members = metadata.participants.length;
+            const groupName = metadata.subject || 'Group';
+            const members = metadata.participants ? metadata.participants.length : 0;
 
             for (let user of participants) {
                 const jid = typeof user === 'string' ? user : user.id;
@@ -97,162 +114,163 @@ const welcomeEvent = async (sock, update) => {
 
                 // 🔒 Anti-spam : éviter les doublons
                 const cacheKey = `${id}_${jid}`;
-                if (lastWelcomeSent.has(cacheKey)) {
-                    const lastTime = lastWelcomeSent.get(cacheKey);
-                    if (Date.now() - lastTime < 60000) { // 1 minute
-                        continue;
-                    }
+                const lastTime = lastWelcomeSent.get(cacheKey);
+                if (lastTime && Date.now() - lastTime < 10000) { // 10 SEC
+                    continue;
                 }
                 lastWelcomeSent.set(cacheKey, Date.now());
 
-                // 🎲 Choisir média aléatoire
-                const randomMedia = getRandomImage();
-                const mediaType = getMediaType(randomMedia);
+                // Message caption commun
+                const captionText = `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢\n\n` +
+                    `*🅆🄴🄻🄲🄾🄼🄴 ✮* @${jid.split('@')[0]} to ${groupName} !\n\n` +
+                    `We are ${members} members now ☕︎.\n\n` +
+                    `*Respect all admins and follow our channel* ⚡︎.\n\n` +
+                    `Desc: ${groupName}\n\n` +
+                    `© 𝙋𝙤𝙬𝙚𝙧𝙚𝙙 𝙗𝙮 𝙘𝙮𝙗𝙚𝙧𝙣𝙤𝙫𝘼\n` +
+                    `*https://whatsapp.com/channel/0029Vb8BKWwH5JLxq1ef1R43*`;
 
-                // Préparer le message
-                const messageContent = {
-                    caption: `ϟ 𝐙𝐞𝐧𝐢𝐭𝐬𝐮 𝐌𝐢𝐧𝐢
-*🅆🄴🄻🄲🄾🄼🄴 ✮* @${jid.split('@')[0]} to ${groupName} !
-We are ${members} members now ☕︎.
-*Respect all admins and follow our channel* ⚡︎.
-Desc: ${groupName}
-
-© 𝙋𝙤𝙬𝙚𝙧𝙚𝙙 𝙗𝙮 𝙘𝙮𝙗𝙚𝙧𝙣𝙤𝙫𝘼
-*https://whatsapp.com/channel/0029Vb8BKWwH5JLxq1ef1R43*`,
-                    contextInfo: {
-                        mentionedJid: [jid],
-                        forwardingScore: 540,
-                        isForwarded: true,
-                        forwardedNewsletterMessageInfo: {
-                            newsletterJid: '120363425394543602@newsletter',
-                            newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
-                            serverMessageId: 202
-                        }
+                // Contexte CyberNova commun
+                const contextInfo = {
+                    mentionedJid: [jid],
+                    forwardingScore: 540,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363425394543602@newsletter',
+                        newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                        serverMessageId: 202
                     }
                 };
 
-                // Ajouter le média selon le type
-                if (mediaType === 'video') {
-                    messageContent.video = { url: randomMedia };
-                } else {
-                    messageContent.image = { url: randomMedia };
+                let sent = false;
+
+                // Essayer d'envoyer avec média
+                try {
+                    const randomMedia = getRandomImage();
+                    const mediaType = getMediaType(randomMedia);
+
+                    const messageContent = {
+                        caption: captionText,
+                        contextInfo: contextInfo
+                    };
+
+                    if (mediaType === 'video') {
+                        messageContent.video = { url: randomMedia };
+                    } else {
+                        messageContent.image = { url: randomMedia };
+                    }
+
+                    await sock.sendMessage(id, messageContent);
+                    sent = true;
+                } catch (mediaErr) {
+                    console.error('⚠️ Welcome media failed, using text fallback:', mediaErr.message);
                 }
 
-                await sock.sendMessage(id, messageContent).catch(err => {
-                    console.error('❌ Erreur envoi welcome:', err.message);
-                });
+                // Fallback : envoyer sans média si le premier essai échoue
+                if (!sent) {
+                    try {
+                        await sock.sendMessage(id, {
+                            text: captionText,
+                            contextInfo: contextInfo
+                        });
+                    } catch (textErr) {
+                        console.error('❌ Welcome text fallback also failed:', textErr.message);
+                    }
+                }
 
                 // ⚡ Anti-spam entre les membres
                 await new Promise(res => setTimeout(res, 2000));
             }
         }
 
-        // Nettoyer le cache périodiquement
-        if (action === 'add' && participants.length > 0) {
-            setTimeout(() => {
-                for (const user of participants) {
-                    const jid = typeof user === 'string' ? user : user.id;
-                    if (jid) {
-                        const cacheKey = `${id}_${jid}`;
-                        lastWelcomeSent.delete(cacheKey);
-                    }
-                }
-            }, 300000); // 5 minutes
-        }
-
     } catch (err) {
-        console.error('❌ Erreur welcome:', err.message || err);
+        console.error('❌ Welcome event error:', err.message || err);
     }
-};
+}
 
 // =========================
 // ⚙️ COMMANDE WELCOME
 // =========================
-const welcomeCommand = async (sock, msg) => {
+async function welcomeCommand(sock, msg, args, jid) {
     try {
-        const from = msg.key.remoteJid;
-
-        // Seulement groupe
-        if (!from.endsWith('@g.us')) return;
-
-        const body =
-            msg.message.conversation ||
-            msg.message.extendedTextMessage?.text ||
-            msg.message.imageMessage?.caption ||
-            '';
-
-        if (!body) return;
-
-        // ✅ Support des DEUX préfixes
-        const PREFIX = global.PREFIX || '.';
-        const hasPrefix = body.startsWith(PREFIX) || body.startsWith('+');
-        if (!hasPrefix) return;
-
-        // Extraire la commande sans le préfixe
-        let commandText = body;
-        if (body.startsWith(PREFIX)) {
-            commandText = body.slice(PREFIX.length).trim();
-        } else if (body.startsWith('+')) {
-            commandText = body.slice(1).trim();
+        // Seulement dans les groupes
+        if (!jid.endsWith('@g.us')) {
+            return sock.sendMessage(jid, {
+                text: '❌ This command only works in groups.',
+                contextInfo: {
+                    forwardingScore: 350,
+                    isForwarded: true,
+                    forwardedNewsletterMessageInfo: {
+                        newsletterJid: '120363425394543602@newsletter',
+                        newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                        serverMessageId: 202
+                    }
+                }
+            }, { quoted: msg });
         }
 
-        // Vérifier si c'est la commande welcome
-        if (!commandText.toLowerCase().startsWith('welcome')) return;
-
-        const args = commandText.split(/\s+/);
-        const option = args[1]?.toLowerCase();
-
+        const option = args[0]?.toLowerCase();
         const db = getWelcome();
+
+        // Contexte CyberNova commun
+        const contextInfo = {
+            forwardingScore: 350,
+            isForwarded: true,
+            forwardedNewsletterMessageInfo: {
+                newsletterJid: '120363425394543602@newsletter',
+                newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
+                serverMessageId: 202
+            }
+        };
 
         // Activer/Désactiver welcome
         if (option === 'on') {
-            db[from] = true;
+            db[jid] = true;
             saveWelcome(db);
-            return sock.sendMessage(from, {
-                text: '✅ *Welcome Enable* in this group''
+            return sock.sendMessage(jid, {
+                text: '✅ *Welcome Enabled* in this group',
+                contextInfo: contextInfo
             }, { quoted: msg });
         }
 
         if (option === 'off') {
-            db[from] = false;
+            db[jid] = false;
             saveWelcome(db);
-            return sock.sendMessage(from, {
-                text: '❌ *Welcome disable* in this group''
+            return sock.sendMessage(jid, {
+                text: '❌ *Welcome Disabled* in this group',
+                contextInfo: contextInfo
             }, { quoted: msg });
         }
 
         // Afficher le statut
-        const status = db[from] === false ? '❌ OFF' : '✅ ON';
-        await sock.sendMessage(from, {
-            text: `╭━━━━❲ *WELCOME STATUS* ❳━━━━╮
-┃
-┃  ⚙️ *Status :* ${status}
-┃
-┃  ${PREFIX}welcome on  = Enable
-┃  ${PREFIX}welcome off = Disable
-┃  +welcome on          = Enable
-┃  +welcome off         = Disable
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`
+        const status = db[jid] === false ? '❌ OFF' : '✅ ON';
+        const prefix = global.PREFIX || '.';
+
+        await sock.sendMessage(jid, {
+            text: `╭━━━━❲ *WELCOME STATUS* ❳━━━━╮\n` +
+                  `┃\n` +
+                  `┃  ⚙️ *Status :* ${status}\n` +
+                  `┃\n` +
+                  `┃  ${prefix}welcome on  = Enable\n` +
+                  `┃  ${prefix}welcome off = Disable\n` +
+                  `┃\n` +
+                  `╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`,
+            contextInfo: contextInfo
         }, { quoted: msg });
 
     } catch (err) {
-        console.error('❌ Erreur commande welcome:', err.message || err);
+        console.error('❌ Welcome command error:', err.message || err);
     }
-};
+}
 
 // =========================
-// 📤 EXPORT POUR LE CHARGEUR D'EVENTS
+// 📤 EXPORTS POUR LE CHARGEUR
 // =========================
 module.exports = {
+    // Pour le chargeur d'événements
     event: 'group-participants.update',
-    execute: welcomeEvent
-};
+    execute: welcomeEvent,
 
-// =========================
-// 📤 EXPORT POUR LA COMMANDE (optionnel)
-// =========================
-module.exports.command = {
+    // Pour le chargeur de commandes
     name: 'welcome',
-    execute: welcomeCommand
+    command: welcomeCommand
 };
