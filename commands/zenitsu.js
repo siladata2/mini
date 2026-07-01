@@ -152,10 +152,7 @@ module.exports = {
                     '.zenitsu reset\n\n' +
                     '✨ *Examples:*\n' +
                     '.zenitsu What is JavaScript?\n' +
-                    '.zenitsu Write a poem\n' +
-                    '.zenitsu setprompt You are a pirate...\n\n' +
-                    `📋 *Current Prompt:* ${currentPrompt ? '✅ Set' : '❌ Not set (default AI)'}\n\n` +
-                    '💡 Set a custom prompt to personalize the AI.',
+                    '.zenitsu Write a poem\n',
                 contextInfo: {
                     forwardingScore: 350,
                     isForwarded: true,
@@ -196,7 +193,7 @@ module.exports = {
                 '⚡ *Zenitsu AI*\n\n' +
                 `❓ *Q:* ${query.length > 200 ? query.substring(0, 200) + '...' : query}\n\n` +
                 `💬 *A:* ${reply}\n\n` +
-                (customPrompt ? '🎭 *Custom prompt active*\n' : '') +
+                (customPrompt ? '򨰵 *Enjoy*\n' : '') +
                 '⚡ _Powered by Zenitsu_';
 
             await sock.sendMessage(jid, {

@@ -210,7 +210,8 @@ module.exports = {
                             caption: `💾 *Saved Video*\n📏 Size: ${(media.buffer.length / 1024).toFixed(2)} KB`,
                         }, { quoted: msg });
                         sent = true;
-                    } catch (err) {                                                     // Fallback: send as document
+                    } catch (err) {
+                        // Fallback: send as document
                         await sock.sendMessage(jid, {
                             document: media.buffer,
                             mimetype: media.mime,
@@ -220,7 +221,8 @@ module.exports = {
                         sent = true;
                     }
                     break;
-                                                                                case 'sticker':
+
+                case 'sticker':
                     await sock.sendMessage(jid, {
                         sticker: media.buffer,
                     }, { quoted: msg });
@@ -229,7 +231,8 @@ module.exports = {
 
                 case 'audio':
                 case 'voice':
-                    const isVoice = media.type === 'voice';                         await sock.sendMessage(jid, {
+                    const isVoice = media.type === 'voice';
+                    await sock.sendMessage(jid, {
                         [isVoice ? 'audio' : 'audio']: media.buffer,
                         mimetype: media.mime,
                         ptt: isVoice,
@@ -260,7 +263,8 @@ module.exports = {
                     break;
 
                 default:
-                    // Generic fallback as document                                 await sock.sendMessage(jid, {
+                    // Generic fallback as document
+                    await sock.sendMessage(jid, {
                         document: media.buffer,
                         mimetype: media.mime,
                         fileName: `saved_media${getExtension(media.mime)}`,

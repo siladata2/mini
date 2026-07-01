@@ -1,10 +1,17 @@
 
-// ./commands/spotify.js
+// ./commands/play.js
 
 const axios = require('axios');
 
 // ═══════════════════════════════════════
-// STORE ACTIVE SEARCHES (per user)
+// QUALITIES
+// ═══════════════════════════════════════
+
+const QUALITIES = ['128kbps', '192kbps', '256kbps', '320kbps'];
+const DEFAULT_QUALITY = '128kbps';
+
+// ═══════════════════════════════════════
+// STORE ACTIVE SEARCHES
 // ═══════════════════════════════════════
 
 const activeSearches = new Map();
@@ -14,8 +21,8 @@ const activeSearches = new Map();
 // ═══════════════════════════════════════
 
 module.exports = {
-    name: 'spotify',
-    aliases: ['spotifydl', 'spdl', 'spotifysearch'],
+    name: 'play',
+    aliases: ['ytmp3', 'music', 'song', 'youtube', 'yts'],
     category: 'downloader',
 
     async execute({ sock, msg, args, jid }) {
@@ -23,20 +30,25 @@ module.exports = {
         const input = args.join(' ');
 
         // ═══════════════════════════════════════
-        // NO ARGS → SHOW HELP
+        // NO INPUT → HELP
         // ═══════════════════════════════════════
 
         if (!input || input.trim().length < 1) {
             return sock.sendMessage(jid, {
                 text:
-                    '🎵 *Spotify Search & Download*\n\n' +
+                    '🎵 *YouTube Music Downloader*\n\n' +
                     '⚡ *Usage:*\n' +
-                    '.spotify <song name>\n' +
-                    '.spotify <number> (to download from results)\n\n' +
+                    '.play <song name>\n' +
+                    '.play <quality> <song name>\n' +
+                    '.play <number> (to download from search)\n\n' +
+                    '🎼 *Qualities:*\n' +
+                    '  128kbps | 192kbps | 256kbps | 320kbps\n' +
+                    `  Default: ${DEFAULT_QUALITY}\n\n` +
                     '✨ *Examples:*\n' +
-                    '.spotify Blinding Lights\n' +
-                    '.spotify 1 (after search, to download result #1)\n\n' +
-                    '💡 Search first, then reply with the number.',
+                    '.play Spectre\n' +
+                    '.play 320kbps Spectre\n' +
+                    '.play 1 (after search)\n\n' +
+                    '💡 Search first, then reply with the number to download.',
                 contextInfo: {
                     forwardingScore: 350,
                     isForwarded: true,
@@ -61,7 +73,7 @@ module.exports = {
 
             if (!stored || !stored.results || stored.results.length === 0) {
                 return sock.sendMessage(jid, {
-                    text: '⚠️ *No active search*\n\nUse .spotify <song name> first to search.',
+                    text: '⚠️ *No active search*\n\nUse .play <song name> first.',
                     contextInfo: {
                         forwardingScore: 350,
                         isForwarded: true,
@@ -90,32 +102,46 @@ module.exports = {
             }
 
             const selected = stored.results[selectedIndex];
+            const quality = stored.quality || DEFAULT_QUALITY;
 
             try { await sock.sendMessage(jid, { react: { text: '⬇️', key: msg.key } }); } catch (_) {}
 
-            return downloadSpotify(sock, msg, jid, selected.url, selected.title, selected.artist);
+            return downloadMusic(sock, msg, jid, selected.url, selected.title, selected.duration, quality);
         }
 
         // ═══════════════════════════════════════
         // TEXT INPUT → SEARCH
         // ═══════════════════════════════════════
 
-        const query = input;
+        // Extract quality if present
+        let quality = DEFAULT_QUALITY;
+        let searchQuery = input;
+        const argsLower = args.map(a => a.toLowerCase());
+
+        for (const q of QUALITIES) {
+            const index = argsLower.indexOf(q);
+            if (index >= 0) {
+                quality = q;
+                searchQuery = args.filter((_, i) => i !== index).join(' ');
+                break;
+            }
+        }
 
         try { await sock.sendMessage(jid, { react: { text: '🔍', key: msg.key } }); } catch (_) {}
 
         try {
             const { data } = await axios.get(
-                `https://api.giftedtech.co.ke/api/search/spotifysearch?apikey=gifted&query=${encodeURIComponent(query)}`,
+                `https://api.giftedtech.co.ke/api/search/yts?apikey=gifted&query=${encodeURIComponent(searchQuery)}`,
                 { timeout: 30000 }
             );
 
-            // Extract results
+            // ── Extract results ──
             let results = [];
-            if (data?.results && Array.isArray(data.results)) {
+
+            if (data?.result && Array.isArray(data.result)) {
+                results = data.result;
+            } else if (data?.results && Array.isArray(data.results)) {
                 results = data.results;
-            } else if (data?.data && Array.isArray(data.data)) {
-                results = data.data;
             } else if (Array.isArray(data)) {
                 results = data;
             }
@@ -124,36 +150,37 @@ module.exports = {
                 throw new Error('No results found');
             }
 
-            // Store results for this user
+            // ── Clean results ──
             const maxResults = Math.min(results.length, 5);
             const cleanedResults = results.slice(0, maxResults).map(item => ({
                 title: item.title || item.name || 'Unknown',
-                artist: item.artist || item.artists || item.author || 'Unknown',
-                url: item.url || item.link || item.track_url || '',
-                album: item.album || '',
-                duration: item.duration || '',
+                url: item.url || item.link || item.id || '',
+                duration: item.duration || item.timestamp || 'Unknown',
+                views: item.views || item.view_count || '',
             }));
 
+            // ── Store ──
             activeSearches.set(senderJid, {
                 results: cleanedResults,
+                quality: quality,
                 timestamp: Date.now(),
             });
 
-            // Build response
-            let replyText = `🎵 *Spotify Search: ${query}*\n\n`;
+            // ── Build response ──
+            let replyText = `🎵 *Search Results: ${searchQuery}*\n`;
+            replyText += `🎼 *Quality:* ${quality}\n\n`;
 
             cleanedResults.forEach((item, i) => {
                 replyText += `*${i + 1}.* ${item.title}\n`;
-                replyText += `   🎤 ${item.artist}\n`;
-                if (item.album) replyText += `   💿 ${item.album}\n`;
-                if (item.duration) replyText += `   ⏱ ${item.duration}\n`;
-                replyText += '\n';
+                replyText += `   ⏱ ${item.duration}`;
+                if (item.views) replyText += ` | 👁 ${item.views}`;
+                replyText += '\n\n';
             });
 
             replyText +=
-                `📌 *Reply with:* .spotify <number>\n` +
-                `⚡ _Example: .spotify 1_\n\n` +
-                `⏳ Results expire in 5 minutes.`;
+                `📌 *Reply:* .play <number>\n` +
+                `⚡ _Example: .play 1_\n\n` +
+                '⏳ Results expire in 5 minutes.';
 
             await sock.sendMessage(jid, {
                 text: replyText,
@@ -170,7 +197,7 @@ module.exports = {
 
             try { await sock.sendMessage(jid, { react: { text: '✅', key: msg.key } }); } catch (_) {}
 
-            // Auto-clean after 5 minutes
+            // Auto-clean
             setTimeout(() => {
                 const stored = activeSearches.get(senderJid);
                 if (stored && Date.now() - stored.timestamp > 300000) {
@@ -179,14 +206,14 @@ module.exports = {
             }, 300000);
 
         } catch (err) {
-            console.error('❌ spotify search error:', err.message);
+            console.error('❌ play search error:', err.message);
             try { await sock.sendMessage(jid, { react: { text: '❌', key: msg.key } }); } catch (_) {}
 
             await sock.sendMessage(jid, {
                 text:
                     '❌ *Search Failed*\n\n' +
-                    'No results found. Try a different search term.\n\n' +
-                    '⚡ _Example: .spotify Blinding Lights_',
+                    'No results found. Try a different song name.\n\n' +
+                    '⚡ _Example: .play Spectre_',
                 contextInfo: {
                     forwardingScore: 350,
                     isForwarded: true,
@@ -202,28 +229,37 @@ module.exports = {
 };
 
 // ═══════════════════════════════════════
-// DOWNLOAD FUNCTION
+// DOWNLOAD MUSIC
 // ═══════════════════════════════════════
 
-async function downloadSpotify(sock, msg, jid, trackUrl, title, artist) {
+async function downloadMusic(sock, msg, jid, videoUrl, title, duration, quality) {
     try {
-        const encodedUrl = encodeURIComponent(trackUrl);
+        const encodedUrl = encodeURIComponent(videoUrl);
 
         const { data } = await axios.get(
-            `https://api.giftedtech.co.ke/api/download/spotifydlv2?apikey=gifted&url=${encodedUrl}`,
-            { timeout: 90000 }
+            `https://api.giftedtech.co.ke/api/download/ytmp3?apikey=gifted&url=${encodedUrl}&quality=${quality}`,
+            { timeout: 60000 }
         );
 
         let downloadUrl = null;
-        if (data?.result?.download_url) downloadUrl = data.result.download_url;
-        else if (data?.url) downloadUrl = data.url;
-        else if (data?.link) downloadUrl = data.link;
-        else if (data?.download_url) downloadUrl = data.download_url;
-        else if (typeof data === 'string' && data.startsWith('http')) downloadUrl = data;
+
+        if (data?.result?.download_url) {
+            downloadUrl = data.result.download_url;
+        } else if (data?.result?.url) {
+            downloadUrl = data.result.url;
+        } else if (data?.url) {
+            downloadUrl = data.url;
+        } else if (data?.link) {
+            downloadUrl = data.link;
+        } else if (data?.download_url) {
+            downloadUrl = data.download_url;
+        } else if (typeof data === 'string' && data.startsWith('http')) {
+            downloadUrl = data;
+        }
 
         if (!downloadUrl) throw new Error('No download URL');
 
-        // Download the audio
+        // Download audio
         const audioRes = await axios.get(downloadUrl, {
             responseType: 'arraybuffer',
             timeout: 120000,
@@ -243,12 +279,13 @@ async function downloadSpotify(sock, msg, jid, trackUrl, title, artist) {
         // Send info
         await sock.sendMessage(jid, {
             text:
-                `🎵 *Spotify Download*\n\n` +
+                '🎵 *Music Downloaded*\n\n' +
                 `📌 *Title:* ${title}\n` +
-                `🎤 *Artist:* ${artist}\n` +
+                `⏱ *Duration:* ${duration}\n` +
+                `🎼 *Quality:* ${quality}\n` +
                 `📦 *Size:* ${sizeMB} MB\n` +
-                `🔗 ${trackUrl}\n\n` +
-                `⚡ _Downloaded by Zenitsu_`,
+                `🔗 ${videoUrl}\n\n` +
+                '⚡ _Downloaded by Zenitsu_',
             contextInfo: {
                 forwardingScore: 350,
                 isForwarded: true,
@@ -263,14 +300,14 @@ async function downloadSpotify(sock, msg, jid, trackUrl, title, artist) {
         try { await sock.sendMessage(jid, { react: { text: '✅', key: msg.key } }); } catch (_) {}
 
     } catch (err) {
-        console.error('❌ spotify download error:', err.message);
+        console.error('❌ play download error:', err.message);
         try { await sock.sendMessage(jid, { react: { text: '❌', key: msg.key } }); } catch (_) {}
 
         await sock.sendMessage(jid, {
             text:
                 '❌ *Download Failed*\n\n' +
                 `${err.message}\n\n` +
-                '⚡ Try another result or check the URL.',
+                '⚡ Try another result or a different quality.',
             contextInfo: {
                 forwardingScore: 350,
                 isForwarded: true,
