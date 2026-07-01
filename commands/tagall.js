@@ -65,14 +65,14 @@ module.exports = {
             // Créer les mentions cachées
             const mentionsList = participants.map((p, i) => {
                 const name = p.split('@')[0];
-                return `┃  ${i+1}. @${name}`;
-            }).join('\n• ');
+                return `┃  ${i+1}★ @${name}`;
+            }).join('\n ');
 
             const footer = `
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
-*𝙛𝙤𝙡𝙡𝙤𝙬 𝙩𝙝𝙚 𝙘𝙝𝙖𝙣𝙣𝙚𝙡 ツ , 𝙧𝙚𝙨𝙥𝙚𝙘𝙩 𝙖𝙙𝙢𝙞𝙣𝙨 ♕, 𝙨𝙢𝙞𝙡𝙚 ☹*
+*𝙛𝙤𝙡𝙡𝙤𝙬 𝙩𝙝𝙚 𝙘𝙝𝙖𝙣𝙣𝙚𝙡 ツ , 𝙧𝙚𝙨𝙥𝙚𝙘𝙩 𝙖𝙙𝙢𝙞𝙣𝙨 ♕, 𝙨𝙢𝙞𝙡𝙚 ㋡*
 _©CybernovA_`;
 
             // Combiner le tout
@@ -148,11 +148,11 @@ _©CybernovA_`;
             let errorMsg = '❌ *Erreur Tagall*\n\n';
             
             if (error.message.includes('not-authorized')) {
-                errorMsg += '🚫 *Non autorisé*\n\nLe bot n\'a pas les droits nécessaires.\n\n_Assurez-vous que le bot est admin._';
+                errorMsg += '🚫 *Not autorized* Make me admin';
             } else if (error.message.includes('rate-overlimit')) {
                 errorMsg += '⏰ *Limite atteinte*\n\nTrop de mentions en peu de temps.\n\n_Attendez quelques minutes._';
             } else {
-                errorMsg += `💥 *Erreur technique*\n\n${error.message}\n\n_Réessayez plus tard._`;
+                errorMsg += `💥 *Error*\n\n${error.message}_`;
             }
             
             errorMsg += '\n\n━━━━━━━━━━━━━━━\n_©CybernovA_';

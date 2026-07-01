@@ -1,3 +1,4 @@
+
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -98,7 +99,7 @@ const TTS_PROVIDERS = [
                 'ja': gender === 'male' ? 'Kenji' : 'Sakura'
             };
             const voice = voiceMap[lang] || (gender === 'male' ? 'Brian' : 'Emma');
-            
+
             return {
                 data: {
                     msg: text,
@@ -143,7 +144,7 @@ const LANGUAGE_CODES = {
 };
 
 // =========================
-🔍 TTS FUNCTION WITH FALLBACK
+//🔍 TTS FUNCTION WITH FALLBACK
 // =========================
 const generateTTS = async (text, lang = 'en', gender = 'female') => {
     // Limiter le texte pour éviter les timeouts
@@ -154,7 +155,7 @@ const generateTTS = async (text, lang = 'en', gender = 'female') => {
     for (const provider of TTS_PROVIDERS) {
         try {
             console.log(`🎤 Trying ${provider.name}...`);
-            
+
             const config = provider.format(text, lang, gender);
             let responseData;
 
@@ -285,7 +286,7 @@ _©CybernovA_`;
 
         for (let i = 0; i < args.length; i++) {
             const arg = args[i];
-            
+
             // Vérifier le genre
             if (arg === 'f' || arg === 'female' || arg === 'woman' || arg === 'girl') {
                 gender = 'female';
@@ -295,27 +296,27 @@ _©CybernovA_`;
                 gender = 'male';
                 continue;
             }
-            
+
             // Vérifier la langue
             if (arg.length === 2 && LANGUAGE_CODES[arg]) {
                 lang = arg;
                 continue;
             }
-            
+
             // Si c'est un format "f|fr" ou "m|en"
             if (arg.includes('|')) {
                 const parts = arg.split('|');
                 if (parts.length === 2) {
                     const g = parts[0].toLowerCase();
                     const l = parts[1].toLowerCase();
-                    
+
                     if (g === 'f' || g === 'female') gender = 'female';
                     if (g === 'm' || g === 'male') gender = 'male';
                     if (LANGUAGE_CODES[l]) lang = l;
                 }
                 continue;
             }
-            
+
             // Sinon, c'est du texte
             textToSpeak += (textToSpeak ? ' ' : '') + arg;
         }
@@ -351,7 +352,7 @@ _©CybernovA_`;
         // =========================
         try {
             const result = await generateTTS(textToSpeak, lang, gender);
-            
+
             if (msg?.key) {
                 await sock.sendMessage(from, {
                     react: { text: '✅', key: msg.key }
@@ -364,28 +365,23 @@ _©CybernovA_`;
                 mimetype: 'audio/mpeg',
                 ptt: false,  // false = audio normal, true = voice message
                 contextInfo: {
-                    mentionedJid: [from],
-                    forwardingScore: 540,
+                    mentionedJid: [from],                                           forwardingScore: 540,
                     isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363425394543602@newsletter',
+                    forwardedNewsletterMessageInfo: {                                   newsletterJid: '120363425394543602@newsletter',
                         newsletterName: '모🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟',
                         serverMessageId: 202
                     }
                 }
             });
-
             // Message de confirmation
             const summary = `╭━━━━❲ *TTS GENERATED* ❳━━━━╮
 ┃
 ┃  ✅ *Speech generated*
 ┃
-┃  📝 *Text :* "${textToSpeak.substring(0, 50)}${textToSpeak.length > 50 ? '...' : ''}"
-┃  🌍 *Language :* ${LANGUAGE_CODES[lang] || lang}
+┃  📝 *Text :* "${textToSpeak.substring(0, 50)}${textToSpeak.length > 50 ? '...' : ''}"                                         ┃  🌍 *Language :* ${LANGUAGE_CODES[lang] || lang}
 ┃  👤 *Voice :* ${gender}
 ┃  📡 *Source :* ${result.provider}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+┃                                                               ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
 
 ━━━━━━━━━━━━━━━
 _©CybernovA_`;

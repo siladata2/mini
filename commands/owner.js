@@ -21,8 +21,8 @@ module.exports = {
         const caption = `╭━━━━❲ *CONTACT OWNER* ❳━━━━╮
 ┃
 ┃  👑 *Z3niTsu*
-┃  +50935948231
-┃  📞 *WhatsApp :* wa.me/${owner.split('@')[0]}
+┃  wa.me/50935948231
+┃  * wa.me/${owner.split('@')[0]}
 ┃
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
 
