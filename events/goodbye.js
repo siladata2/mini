@@ -37,6 +37,15 @@ const goodbyeImages = [
     'https://iili.io/BQeNq0b.jpg',
     'https://files.catbox.moe/jcf2qc.jpg',
     'https://files.catbox.moe/tz07yl.jpg',
+    'https://iili.io/CY3iYba.jpg',
+    'https://iili.io/CY3igd7.jpg',
+    'https://iili.io/CY3sB2I.jpg',
+    'https://iili.io/CY3s542.jpg',
+    'https://iili.io/CY3sNv1.jpg',
+    'https://iili.io/CY3sgGR.jpg',
+    'https://iili.io/CY3LHaS.jpg',
+    'https://iili.io/CY3LFwu.jpg',
+    'https://iili.io/CY3LRta.jpg',
     'https://iili.io/BsJvF7R.jpg',
     'https://iili.io/BsJUPjV.jpg',
     'https://iili.io/BsdTfqJ.jpg',
@@ -267,7 +276,7 @@ async function goodbyeCommand(sock, msg, args, jid) {
 
         // Afficher le statut
         const status = db[jid] === false ? '❌ OFF' : '✅ ON';
-        const prefix = GLOBAL.PREFIX || '.';
+        const prefix = global.PREFIX || '.';
 
         await sock.sendMessage(jid, {
             text: `╭━━━━❲ *GOODBYE STATUS* ❳━━━━╮\n` +

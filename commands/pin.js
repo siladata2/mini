@@ -17,8 +17,8 @@
 // L'user peut envoyer ".img <query> --n=3" pour demander N résultats.
 
 const TIMEOUT_MS  = 20000;
-const DEFAULT_MAX = 1; // 1 image par défaut pour éviter le spam
-const HARD_MAX    = 5; // max absolu
+const DEFAULT_MAX = 3; // 1 image par défaut pour éviter le spam
+const HARD_MAX    = 10; // max absolu
 
 const USER_AGENT =
   'Mozilla/5.0 (Linux; Android 13; Pixel 7) ' +
@@ -137,10 +137,10 @@ async function downloadImage(url) {
 // ─── Commande principale ───────────────────────
 
 module.exports = {
-  name: 'img',
+  name: 'pin',
   aliases: ['img', 'image', 'search'],
   description: 'Search and send images from the web (Pinterest → Bing)',
-  usage: '.img <query> [--n=2]',
+  usage: '.pin <query> [--n=2]',
   adminOnly: false,
   groupOnly: false,
 
@@ -166,8 +166,8 @@ module.exports = {
         text:
           '❌ *Usage:* `.img <search query>`\n\n' +
           '_Examples:_\n' +
-          '• `.img sunset beach`\n' +
-          '• `.img anime wallpaper --n=3`\n\n' +
+          '• `.pin sunset beach`\n' +
+          '• `.pin anime wallpaper --n=5`\n\n' +
           `_Max images per request: ${HARD_MAX}_`,
       }, { quoted: msg });
       return;

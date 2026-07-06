@@ -317,7 +317,7 @@ const subCommands = {
 };
 
 module.exports = {
-    name: 'Group',
+    name: 'group',
 
     /**
      * Main execute function called by the bot

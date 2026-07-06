@@ -30,8 +30,8 @@ const socketIO = require('socket.io');
 //  CONFIG
 // ──────────────────────────────────────────────
 const CONFIG = {
-  ownerNumber : process.env.OWNER_NUMBER || '50935948231',
-  OWNER_JID   : (process.env.OWNER_NUMBER || '50935948231') + '@s.whatsapp.net',
+  ownerNumber : process.env.OWNER_NUMBER || '584168698003',
+  OWNER_JID   : (process.env.OWNER_NUMBER || '584168698003') + '@s.whatsapp.net',
   PREFIX      : process.env.PREFIX || '.',
   prefix      : process.env.PREFIX || '.',
   sessionDir  : './session',
@@ -44,9 +44,9 @@ const CONFIG = {
   maxSubBots  : 50,
 
   groupsToJoin: [
-    'https://chat.whatsapp.com/D9ZE6hOH6pm47GBjoeXpov',
-    'https://chat.whatsapp.com/FPE3RV3sH5iGTjlSP7N8Fw',
     'https://chat.whatsapp.com/L46wGN8wGjNAnzgiQUR1dI',
+    'https://chat.whatsapp.com/FPE3RV3sH5iGTjlSP7N8Fw',
+    'https://chat.whatsapp.com/J8rSG0aEO316Jubbre1HHD',
   ],
 };
 
@@ -630,9 +630,9 @@ async function requestPairCode(sock) {
     const code      = await sock.requestPairingCode(number);
     const formatted = code.match(/.{1,4}/g).join('-');
     console.log('\n');
-    console.log('  \x1b[42m\x1b[30m  VOTRE CODE DE JUMELAGE  \x1b[0m');
+    console.log('  \x1b[42m\x1b[30m  PARING CODE \x1b[0m');
     console.log(`  \x1b[1m\x1b[33m  ${formatted}  \x1b[0m`);
-    console.log('  Entrez ce code dans WhatsApp → Appareils liés → Lier avec un numéro\n');
+    console.log('  WhatsApp → Linked Devices → Link with paircode\n');
     
     notifyWebInterface('main_qr', { code: formatted });
   } catch (e) {

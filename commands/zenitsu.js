@@ -147,7 +147,6 @@ module.exports = {
                     '⚡ *Zenitsu AI — Custom Assistant*\n\n' +
                     '📌 *Usage:*\n' +
                     '.zenitsu <question>\n' +
-                    '.zenitsu setprompt <prompt>\n' +
                     '.zenitsu getprompt\n' +
                     '.zenitsu reset\n\n' +
                     '✨ *Examples:*\n' +
