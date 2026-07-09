@@ -38,7 +38,7 @@ const CONFIG = {
   subBotsDir  : './session/subbots',
   commandsDir : './commands',
   eventsDir   : './events',
-  maxRetries  : 5,
+  maxRetries  : 20,
   keepAliveMs : 5 * 60 * 1000,
   botName     : process.env.BOT_NAME || '𝙯𝙚𝙣𝙞𝙩𝙨𝙪 ᗰᎥᑎᎥ',
   maxSubBots  : 50,

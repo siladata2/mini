@@ -97,7 +97,7 @@ module.exports = {
             const customMessage = args.length > 0 ? args.join(' ') : '';
 
             // Build final message
-            let finalMessage = customMessage || quotedMessage || '📢 Attention everyone!';
+            let finalMessage = customMessage || quotedMessage ||'‎‎‎';
             if (quotedMessage && customMessage) {
                 finalMessage = `${customMessage}\n\n━━━━━━━━━━━━━━\n📌 *Quoted:* ${quotedMessage}`;
             }

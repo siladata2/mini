@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 module.exports = {
-    name: 'menu',
+    name: 'menu1',
     aliases: ['help', 'commands', 'cmd'],
     description: 'Affiche le menu du bot',
 
