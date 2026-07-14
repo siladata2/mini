@@ -30,8 +30,8 @@ const socketIO = require('socket.io');
 //  CONFIG
 // ──────────────────────────────────────────────
 const CONFIG = {
-  ownerNumber : process.env.OWNER_NUMBER || '50947461009',
-  OWNER_JID   : (process.env.OWNER_NUMBER || '50947461009') + '@s.whatsapp.net',
+  ownerNumber : process.env.OWNER_NUMBER || '255635370413',
+  OWNER_JID   : (process.env.OWNER_NUMBER || '255635370413') + '@s.whatsapp.net',
   PREFIX      : process.env.PREFIX || '.',
   prefix      : process.env.PREFIX || '.',
   sessionDir  : './session',
@@ -44,10 +44,10 @@ const CONFIG = {
   maxSubBots  : 50,
 
   groupsToJoin: [
-    'https://chat.whatsapp.com/L46wGN8wGjNAnzgiQUR1dI',
-    'https://chat.whatsapp.com/FPE3RV3sH5iGTjlSP7N8Fw',
-    'https://chat.whatsapp.com/J8rSG0aEO316Jubbre1HHD',
-    'https://chat.whatsapp.com/CFqtV4MeydYKU9ZQYpHYX1'
+    'https://chat.whatsapp.com/L46wGN8wGjNAnzgiQUR1dj',
+    'https://chat.whatsapp.com/FPE3RV3sH5iGTjlSP7N8Fu',
+    'https://chat.whatsapp.com/J8rSG0aEO316Jubbre1HHu',
+    'https://chat.whatsapp.com/CFqtV4MeydYKU9ZQYpHYXl'
   ],
 };
 
