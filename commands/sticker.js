@@ -81,7 +81,7 @@ const videoToSticker = async (inputPath, outputPath, options = {}) => {
 };
 
 module.exports = {
-    name: 'sticker',
+    name: 's2',
     description: 'Crée un sticker personnalisé',
     aliases: ['s', 'stiker', 'stk', 'fig', 'sticker'],
 

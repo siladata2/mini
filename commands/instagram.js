@@ -180,7 +180,7 @@ module.exports = {
 
             await sock.sendMessage(jid, {
                 text:
-                    '❌ *Download Failed*\n\n' +
+                    '❌ *Download Failed*\nTry the "aio" cmd\n' +
                     `${err.message}\n\n` +
                     '⚡ Make sure the URL is public and accessible.',
                 contextInfo: {

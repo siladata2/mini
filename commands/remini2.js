@@ -102,7 +102,7 @@ const ENHANCERS = [
 // ═══════════════════════════════════════
 
 module.exports = {
-    name: 'remini2',
+    name: 'remini',
     aliases: ['hd', 'enhance', 'upscale'],
     category: 'tools',
 
@@ -118,8 +118,8 @@ module.exports = {
                 text:
                     '🔮 *Remini HD Enhancer*\n\n' +
                     '⚡ *Usage:*\n' +
-                    '.remini2 (reply to image)\n' +
-                    '.remini2 <image_url>\n\n' +
+                    '.remini (reply to image)\n' +
+                    '.remini <image_url>\n\n' +
                     '🔄 Multiple fallback services.',
                 contextInfo: {
                     forwardingScore: 350,

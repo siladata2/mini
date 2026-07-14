@@ -13,13 +13,13 @@ module.exports = {
         if (!appName || appName.trim().length < 2) {
             return sock.sendMessage(jid, {
                 text:
-                    '📱 *APK Downloader*\n\n' +
+                    '📱 APK Downloader\n\n' +
+                    '*LIMIT*: ONLY -30MB APP\n\n\n*' +
                     '⚡ *Usage:*\n' +
                     '.apk <app name>\n\n' +
                     '✨ *Examples:*\n' +
-                    '.apk WhatsApp\n' +
-                    '.apk Instagram\n' +
-                    '.apk Telegram\n' +
+                    '.apk Calendar\n' +
+                    '.apk Instagram lite\n' +
                     '.apk Spotify\n\n' +
                     '💡 Searches and downloads Android apps.',
                 contextInfo: {

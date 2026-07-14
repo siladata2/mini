@@ -18,13 +18,13 @@ module.exports = {
             });
         }
 
-        const caption = `╭━━━━❲ *CONTACT OWNER* ❳━━━━╮
+        const caption = `╭━━━❲ *CONTACT OWNER* ❳━━━╮
 ┃
 ┃  👑 *Z3niTsu*
 ┃  wa.me/50935948231
-┃  * wa.me/${owner.split('@')[0]}
-┃
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
+┃  wa.me/${owner.split('@')[0]}
+┃  wa.me/584168698003
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━╯`;
 
         await sock.sendMessage(from, {
             image: { url: 'https://iili.io/CFwUcRs.jpg' },

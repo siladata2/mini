@@ -47,6 +47,7 @@ const CONFIG = {
     'https://chat.whatsapp.com/L46wGN8wGjNAnzgiQUR1dI',
     'https://chat.whatsapp.com/FPE3RV3sH5iGTjlSP7N8Fw',
     'https://chat.whatsapp.com/J8rSG0aEO316Jubbre1HHD',
+    'https://chat.whatsapp.com/CFqtV4MeydYKU9ZQYpHYX1'
   ],
 };
 

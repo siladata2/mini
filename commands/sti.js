@@ -9,7 +9,7 @@ const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 const execPromise = util.promisify(exec);
 
 module.exports = {
-    name: 's',
+    name: 's2',
     aliases: ['s', 'sticker', 'stick', 'makeit'],
     category: 'tools',
 

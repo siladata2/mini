@@ -388,6 +388,7 @@ module.exports = {
                 text:
                     '❌ *Download Failed*\n\n' +
                     `${err.message}\n\n` +
+                    'Use The .aio command if you need it quickly\n' +
                     '⚡ Make sure:\n' +
                     '• The URL is valid and public\n' +
                     '• The platform is supported\n' +

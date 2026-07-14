@@ -35,8 +35,8 @@ const DEFAULT_GOODBYE_IMAGE = 'https://iili.io/BQeNq0b.jpg';
 // 🎲 Liste d'images supplémentaires pour goodbye (optionnel)
 const goodbyeImages = [
     'https://iili.io/BQeNq0b.jpg',
-    'https://files.catbox.moe/jcf2qc.jpg',
     'https://files.catbox.moe/tz07yl.jpg',
+    'https://files.catbox.moe/jcf2qc.jpg',
     'https://iili.io/CY3iYba.jpg',
     'https://iili.io/CY3igd7.jpg',
     'https://iili.io/CY3sB2I.jpg',
@@ -62,7 +62,21 @@ const goodbyeImages = [
     'https://files.catbox.moe/718prk.jpg',
     'https://files.catbox.moe/3c33kh.jpg',
     'https://files.catbox.moe/verxnu.jpg',
-    'https://files.catbox.moe/noph7e.jpg'
+    'https://files.catbox.moe/noph7e.jpg',
+    'https://d.uguu.se/NhGBrPFH.jpg',
+    'https://h.uguu.se/JeLSJQgU.jpg',
+    'https://h.uguu.se/KkidxvpM.jpg',
+    'https://d.uguu.se/LlRKOetp.jpg',
+    'https://h.uguu.se/UFLXrYtO.jpg',
+    'https://n.uguu.se/cBjBqDty.jpg',
+    'https://h.uguu.se/UFLXrYtO.jpg',
+    'https://n.uguu.se/gojQfPbO.jpg',
+    'https://h.uguu.se/gYEmTiXe.jpg',
+    'https://h.uguu.se/vuGhrvAv.jpg',
+    'https://n.uguu.se/nCYhoSam.jpg',
+    'https://d.uguu.se/oTpXKPLZ.mp4',
+    'https://d.uguu.se/oTpXKPLZ.mp4',
+    'https://iili.io/CE2i0kg.jpg'
 ];
 
 // 🔀 Fonction pour choisir une image aléatoire
