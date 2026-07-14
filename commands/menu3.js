@@ -150,36 +150,36 @@ END:VCARD`,
                 if (!sortedCommands.length) continue;
 
                 menuText += `\n『 ⚡ *${cat.toUpperCase()}* 』\n`;
-                menuText += `╭━━━━━━━━━━━━━━┈⊷\n`;
+                menuText += `╭━━━━━━━━━━━━┈⊷\n`;
                 sortedCommands.forEach(cmd => {
-                    menuText += `┃ ▸ ${config?.PREFIX || '.'}${cmd}\n`;
+                    menuText += `┃ ▸ ${cmd}\n`;
                 });
-                menuText += `╰━━━━━━━━━━━━━━┈⊷\n`;
+                menuText += `╰━━━━━━━━━━━━┈⊷\n`;
             }
 
             if (!menuText) {
                 menuText = `\n『 ⚡ *COMMANDS* 』\n`;
-                menuText += `╭━━━━━━━━━━━━━━┈⊷\n`;
+                menuText += `╭━━━━━━━━━━━━┈⊷\n`;
                 menuText += `┃ ▸ No commands loaded yet\n`;
-                menuText += `╰━━━━━━━━━━━━━━┈⊷\n`;
+                menuText += `╰━━━━━━━━━━━━┈⊷\n`;
             }
 
             // ── Build caption ──
             const caption =
-                `╭━━〔 ⚡${BOT_INFO.name}⚡ 〕━┈⊷\n` +
+                `╭━〔 ${BOT_INFO.name} 〕━┈⊷\n` +
                 `┃\n` +
-                `┃ 📱 *Number* : @${senderNumber}\n` +
-                `┃ ⚙️  *Mode* : ${config?.MODE || 'public'}\n` +
-                `┃ ⏳ *Upt* : ${uptime}\n` +
-                `┃ 🔰 *Prefix* : [ ${config?.PREFIX || '.'} ]\n` +
-                `┃ 🤖 *Sub-Bots* : ${subBots?.size || 0}\n` +
-                `┃ 📦 *Commands* : ${totalLoaded}\n` +
+                `┃ 📱 *Number*: @${senderNumber}\n` +
+                `┃ ⚙️  *Mode*: ${config?.MODE || 'public'}\n` +
+                `┃ ⏳ *Upt*: ${uptime}\n` +
+                `┃ 🔰 *Prefix*: [ ${config?.PREFIX || '.'} ]\n` +
+                `┃ 🤖 *Subbots*: ${subBots?.size || 0}\n` +
+                `┃ 📦 *Cmds*: ${totalLoaded}\n` +
                 `┃\n` +
                 `┃ 📅 *${dayName}*\n` +
                 `┃ 📆 *${date} ${month} ${year}*\n` +
                 `┃ 🕒 *${time}*\n` +
                 `┃\n` +
-                `╰━━━━━━━━━━━━━━┈⊷` +
+                `╰━━━━━━━━━━━━━┈⊷` +
                 `\n${menuText}\n` +
                 `> ⚡ ${BOT_INFO.description}\n`;
 

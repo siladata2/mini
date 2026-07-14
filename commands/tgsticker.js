@@ -1,22 +1,12 @@
-// ./commands/tg.js
+// ./commands/tgsticker.js
 
 const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
 const crypto = require('crypto');
-const { exec } = require('child_process');
-const { promisify } = require('util');
 const webp = require('node-webpmux');
-
-const execAsync = promisify(exec);
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // ═══════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════
-
-const TELEGRAM_BOT_TOKEN = '8339426075:AAEaFANIuo_mJKDDPtPdgemfIxQYYfSCckk';
 
 const STYLE = {
     forwardingScore: 350,
@@ -28,8 +18,8 @@ const STYLE = {
     },
 };
 
-const DEFAULT_PACK = '🅩🅔🅝🅘🅣🅢🅤 🅧 🅜🅔🅣🅐\n';
-const DEFAULT_AUTHOR = '𝕿𝖊𝖑𝖊𝖌𝖗𝖆𝖒 𝕾𝖙𝖎𝖈𝖐';
+const DEFAULT_PACK = 'ᴛɢsᴛɪᴄᴋ_𝟼𝟽';
+const DEFAULT_AUTHOR = '모 🅒🅨🅑🅔🅡🅝🅞🅥🅐 🌟';
 
 // ═══════════════════════════════════════
 // ADD EXIF METADATA
@@ -66,84 +56,60 @@ async function addExifToWebp(webpBuffer, packname, author, emoji = '⚡') {
 }
 
 // ═══════════════════════════════════════
-// CONVERT TO WEBP
-// ═══════════════════════════════════════
-
-async function convertToWebp(buffer, isAnimated) {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'tg-'));
-    const inputPath = path.join(tmpDir, `input_${Date.now()}`);
-    const outputPath = path.join(tmpDir, `output_${Date.now()}.webp`);
-
-    fs.writeFileSync(inputPath, buffer);
-
-    const scale = '512:512';
-    const cmd = isAnimated
-        ? `ffmpeg -i "${inputPath}" -vf "scale=${scale}:force_original_aspect_ratio=decrease,fps=15,pad=${scale}:(ow-iw)/2:(oh-ih)/2:color=#00000000" -c:v libwebp -preset default -loop 0 -vsync 0 -pix_fmt yuva420p -quality 75 -compression_level 6 "${outputPath}"`
-        : `ffmpeg -i "${inputPath}" -vf "scale=${scale}:force_original_aspect_ratio=decrease,format=rgba,pad=${scale}:(ow-iw)/2:(oh-ih)/2:color=#00000000" -c:v libwebp -preset default -loop 0 -vsync 0 -pix_fmt yuva420p -quality 75 -compression_level 6 "${outputPath}"`;
-
-    try {
-        await execAsync(cmd, { timeout: 30000 });
-        if (!fs.existsSync(outputPath)) throw new Error('Conversion failed');
-        return fs.readFileSync(outputPath);
-    } finally {
-        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
-    }
-}
-
-// ═══════════════════════════════════════
 // COMMAND
 // ═══════════════════════════════════════
 
 module.exports = {
     name: 'tgsticker',
-    aliases: ['telegram', 'tgs', 'tsticker', 'telesticker'],
+    aliases: ['tgs', 'telegramsticker', 'tsticker'],
     category: 'downloader',
 
     async execute({ sock, msg, args, jid }) {
         const url = args[0];
 
-        if (!url || !url.match(/(https:\/\/t\.me\/addstickers\/)/gi)) {
+        if (!url || !url.includes('t.me/addstickers/')) {
             return sock.sendMessage(jid, {
                 text:
                     '📦 *Telegram Sticker Downloader*\n\n' +
                     '⚡ *Usage:*\n' +
-                    '.tg <telegram_sticker_url>\n\n' +
+                    '.tgsticker <telegram_url>\n\n' +
                     '✨ *Example:*\n' +
-                    '.tg https://t.me/addstickers/Porcientoreal\n' +
-                    '.tg https://t.me/addstickers/AnimeStickers\n\n' +
-                    '💡 Downloads all stickers from a public Telegram pack.',
+                    '.tgsticker https://t.me/addstickers/RockyPack4\n\n' +
+                    '💡 Downloads all stickers from a public pack.',
                 contextInfo: STYLE,
             }, { quoted: msg });
         }
 
         // Extraire le nom du pack
-        const packName = url.replace('https://t.me/addstickers/', '').split('/')[0];
+        const packName = url.replace('https://t.me/addstickers/', '').split('/')[0].trim();
 
         // Reaction
         try { await sock.sendMessage(jid, { react: { text: '📦', key: msg.key } }); } catch (_) {}
 
         try {
-            // Récupérer les infos du pack
-            const { data: stickerSet } = await axios.get(
-                `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getStickerSet?name=${encodeURIComponent(packName)}`,
-                { timeout: 15000 }
+            // Appeler l'API NexRay
+            const encodedUrl = encodeURIComponent(url);
+            const { data } = await axios.get(
+                `https://api.nexray.eu.cc/tools/telegram-sticker?url=${encodedUrl}`,
+                { timeout: 20000 }
             );
 
-            if (!stickerSet.ok || !stickerSet.result) {
-                throw new Error('Sticker pack not found or private');
+            if (!data?.status || !data?.result?.sticker) {
+                throw new Error('Sticker pack not found or empty');
             }
 
-            const stickers = stickerSet.result.stickers;
+            const pack = data.result;
+            const stickers = pack.sticker;
             const totalStickers = stickers.length;
 
             // Message de progression
             await sock.sendMessage(jid, {
                 text:
                     '📦 *Telegram Stickers*\n\n' +
-                    `📌 *Pack:* ${stickerSet.result.name}\n` +
-                    `🎯 *Title:* ${stickerSet.result.title}\n` +
+                    `📌 *Pack:* ${pack.title || packName}\n` +
+                    `🎯 *Type:* ${pack.sticker_type || 'regular'}\n` +
                     `📊 *Total:* ${totalStickers} stickers\n` +
-                    '⏳ Downloading...',
+                    '⏳ Downloading & converting...',
                 contextInfo: STYLE,
             }, { quoted: msg });
 
@@ -151,36 +117,37 @@ module.exports = {
             let failCount = 0;
 
             // Traiter chaque sticker
-            for (let i = 0; i < totalStickers; i++) {
+            for (let i = 0; i < stickers.length; i++) {
                 try {
                     const sticker = stickers[i];
-                    const fileId = sticker.file_id;
+                    const stickerUrl = sticker.url;
 
-                    // Récupérer le chemin du fichier
-                    const { data: fileInfo } = await axios.get(
-                        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`,
-                        { timeout: 10000 }
-                    );
-
-                    if (!fileInfo.ok || !fileInfo.result?.file_path) {
+                    if (!stickerUrl) {
                         failCount++;
                         continue;
                     }
 
-                    // Télécharger le sticker
-                    const fileUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${fileInfo.result.file_path}`;
-                    const { data: imageBuffer } = await axios.get(fileUrl, {
+                    // Télécharger le sticker WebP
+                    const response = await axios.get(stickerUrl, {
                         responseType: 'arraybuffer',
-                        timeout: 30000,
+                        timeout: 20000,
                     });
 
-                    // Convertir en WebP
-                    const isAnimated = sticker.is_animated || sticker.is_video;
-                    const webpBuffer = await convertToWebp(Buffer.from(imageBuffer), isAnimated);
+                    const webpBuffer = Buffer.from(response.data);
 
-                    // Ajouter les métadonnées
+                    if (!webpBuffer || webpBuffer.length < 100) {
+                        failCount++;
+                        continue;
+                    }
+
+                    // Ajouter les métadonnées EXIF (renommer le pack)
                     const emoji = sticker.emoji || '⚡';
-                    const finalBuffer = await addExifToWebp(webpBuffer, DEFAULT_PACK, DEFAULT_AUTHOR, emoji);
+                    const finalBuffer = await addExifToWebp(
+                        webpBuffer,
+                        DEFAULT_PACK,
+                        DEFAULT_AUTHOR,
+                        emoji
+                    );
 
                     // Envoyer le sticker
                     await sock.sendMessage(jid, {
@@ -191,7 +158,7 @@ module.exports = {
                     successCount++;
 
                     // Petite pause entre chaque sticker
-                    await delay(800);
+                    await new Promise(r => setTimeout(r, 600));
 
                 } catch (stickerErr) {
                     console.log(`⚠️ Sticker ${i + 1} failed:`, stickerErr.message);
@@ -203,7 +170,7 @@ module.exports = {
             await sock.sendMessage(jid, {
                 text:
                     '✅ *Download Complete!*\n\n' +
-                    `📦 *Pack:* ${stickerSet.result.title}\n` +
+                    `📦 *Pack:* ${pack.title || packName}\n` +
                     `✅ *Success:* ${successCount}\n` +
                     `❌ *Failed:* ${failCount}\n` +
                     `📊 *Total:* ${totalStickers}\n\n` +
@@ -214,7 +181,7 @@ module.exports = {
             try { await sock.sendMessage(jid, { react: { text: '✅', key: msg.key } }); } catch (_) {}
 
         } catch (err) {
-            console.error('❌ tg error:', err.message);
+            console.error('❌ tgsticker error:', err.message);
             try { await sock.sendMessage(jid, { react: { text: '❌', key: msg.key } }); } catch (_) {}
 
             await sock.sendMessage(jid, {
@@ -224,7 +191,7 @@ module.exports = {
                     '💡 Make sure:\n' +
                     '• The URL is correct\n' +
                     '• The sticker pack is public\n' +
-                    '• The pack name is valid',
+                    '• The pack exists',
                 contextInfo: STYLE,
             }, { quoted: msg });
         }

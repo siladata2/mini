@@ -291,7 +291,7 @@ module.exports = {
                 // Silently ignore
             }
 
-            await socksendMessage(jid, {
+            await sock.sendMessage(jid, {
                 text: `❌ *Error saving media*\n\n${err.message || 'Unknown error'}`,
             }, { quoted: msg });
         }

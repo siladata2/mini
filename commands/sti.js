@@ -9,7 +9,7 @@ const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 const execPromise = util.promisify(exec);
 
 module.exports = {
-    name: 's2',
+    name: 'sticker',
     aliases: ['s', 'sticker', 'stick', 'makeit'],
     category: 'tools',
 
@@ -24,16 +24,16 @@ module.exports = {
                 text:
                     '🎨 *Sticker Maker*\n\n' +
                     '⚡ *Usage:*\n' +
-                    '.s <quality>\n' +
+                    '.sticker <quality>\n' +
                     'Or reply to an image/video with:\n' +
-                    '.s <quality>\n\n' +
+                    '.sticker <quality>\n\n' +
                     '🎯 *Quality (1-100):*\n' +
                     '  Default: 50\n' +
                     '  1 = Lowest | 100 = Highest\n\n' +
                     '✨ *Examples:*\n' +
-                    '.s 80\n' +
-                    '.s 60 (reply to image)\n' +
-                    '.s  70\n\n' +
+                    '.sticker 80\n' +
+                    '.sticker 60 (reply to image)\n' +
+                    '.sticker  70\n\n' +
                     '💡 Reply to an image or video to create sticker.',
                 contextInfo: {
                     forwardingScore: 350,

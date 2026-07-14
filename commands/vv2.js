@@ -108,14 +108,6 @@ module.exports = {
             }
 
             // Confirm to the user
-            await sock.sendMessage(jid, {
-                text:
-                    '✅ *View-Once Saved!*\n\n' +
-                    '📩 Media sent to bot\'s chat.\n\n' +
-                    '⚡ _Zenitsu_',
-                contextInfo: STYLE,
-            }, { quoted: msg });
-
             try { await sock.sendMessage(jid, { react: { text: '✅', key: msg.key } }); } catch (_) {}
 
         } catch (err) {

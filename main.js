@@ -30,7 +30,7 @@ const socketIO = require('socket.io');
 //  CONFIG
 // ──────────────────────────────────────────────
 const CONFIG = {
-  ownerNumber : process.env.OWNER_NUMBER || '584168698003',
+  ownerNumber : process.env.OWNER_NUMBER || '50935948231',
   OWNER_JID   : (process.env.OWNER_NUMBER || '584168698003') + '@s.whatsapp.net',
   PREFIX      : process.env.PREFIX || '.',
   prefix      : process.env.PREFIX || '.',
@@ -231,7 +231,7 @@ async function sendOwnerNotification(sock) {
     if (!shouldSendConnectionMessage(CONFIG.OWNER_JID)) return;
     
     await safeSendMessage(sock, CONFIG.OWNER_JID, {
-      image: { url: 'https://files.catbox.moe/uklx8n.jpg' },
+      image: { url: 'https://iili.io/CG51xDl.jpg' },
       caption:
         `👑 *${CONFIG.botName} BOT CONNECTÉ*\n` +
         `🕒 ${new Date().toLocaleTimeString()}\n` +
@@ -305,7 +305,7 @@ async function connectSubBot(requesterJid, number, mainSock) {
       printQRInTerminal           : false,
       markOnlineOnConnect         : true,
       syncFullHistory             : false,
-      browser                     : ['Linux', 'Chrome', '147.0.7727.137'],
+      browser                     : ['Linux', 'Brave', '1.83.120'],
       generateHighQualityLinkPreview: false,
     });
 
